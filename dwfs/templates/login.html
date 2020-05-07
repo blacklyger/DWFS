@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero is-medium is-primary is-bold">
+    <div class="hero-body">
+        <div class="container">
+            <h1 class="title">
+                Anmelden
+            </h1>
+            <h2 class="subtitle">
+                Bitte melden Sie sich zuerst an um alle Funktionen nutzen zu können
+            </h2>
+        </div>
+    </div>
+</section>
+
+<div class="columns has-background-dark">
+    <div class="container has-text-centered">
+        <div class="column is-half is-offset-one-quarter">
+            <section class="section">
+                <br>
+                <p class="title has-text-white">Anmelden</p>
+                <div class="box">
+
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <div class="notification is-danger">
+                        {{ messages[0] }}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="/login">
+                        <div class="field">
+                            <div class="control">
+                                <input class="input is-large" name="username" placeholder="Nutzername">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="control">
+                                <input class="input is-large" type="password" name="password" placeholder="Passwort">
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                        <button class="button is-block is-info is-large is-fullwidth">Anmelden</button>
+                    </form>
+                </div>
+
+            </section>
+        </div><br><br><br><br>
+    </div>
+</div>
+
+{% endblock %}

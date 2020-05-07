@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero is-primary">
+    <div class="hero-body">
+        <div class="container">
+            <h1 class="title">
+                Fächerübersicht
+            </h1>
+            <h2 class="subtitle">
+                Hier können Sie alle Fächer einsehen
+            </h2>
+        </div>
+    </div>
+</section>
+
+<div id="help_modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+        <div class="box">
+            <div class="content">
+                <p class="title has-text-centered">
+                    Hilfe
+                </p>
+                <div class="content">
+                    <ul>
+                        <li><b>Fach</b></li>
+                        <div class="content">
+                            Schulfach, für das Medien bereit gestellt werden sollen.
+                        </div>
+                        <li><b>Medien</b></li>
+                        <div class="content">
+                            Totale Anzahl an Medien die momentan existieren.
+                        </div>
+                        <li><b>Zugang</b></li>
+                        <div class="content">
+                            Status ob Sie Zugang zu diesem Fach haben.<br><br>
+                            <i>Ja: Sie haben Zugang zu diesem Fach.</i><br>
+                            <i>Nein: Sie haben keinen Zugang zu diesem Fach.</i>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button onclick="close_help_modal()" class="modal-close is-large" aria-label="close"></button>
+</div>
+
+<div class="columns has-background-dark">
+    <div class="column is-fullwidth has-text-centered has-text-white">
+        <button onclick="open_help_modal()" class="button is-info">Hilfe</button>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(category_filter=['error', 'success']) %}
+{% if messages %}
+{% if messages[0].startswith('Das Fach') %}
+<div class="notification is-danger has-text-centered">
+    {{ messages[0] }}
+</div>
+{% elif messages[0].startswith('Sie haben (noch) keinen Zugang') %}
+<div class="notification is-danger has-text-centered">
+    {{ messages[0] }}
+</div>
+{% endif %}
+{% endif %}
+{% endwith %}
+
+<div class="columns">
+    <div class="column is-fullwidth">
+        <section class="section">
+            <div class="box">
+                <div class="content has-text-centered">
+                    <p class="title">Übersicht</p>
+                </div>
+                <div class="content has-text-centered">
+                    <table class="table is-bordered">
+                        <thead>
+                            <tr>
+                                <th><abbr title="Subject">Fach</abbr></th>
+                                <th><abbr title="Medien">Medien</abbr></th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% if mathematik.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Mathematik') }}">Mathematik</a></td>
+                                <td>{{ mathematik.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if deutsch.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Deutsch') }}">Deutsch</a></td>
+                                <td>{{ deutsch.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if englisch.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Englisch') }}">Englisch</a></td>
+                                <td>{{ englisch.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if französisch.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Französisch') }}">Französisch</a></td>
+                                <td>{{ französisch.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if spanisch.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Spanisch') }}">Spanisch</a></td>
+                                <td>{{ spanisch.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if latein.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Latein') }}">Latein</a></td>
+                                <td>{{ latein.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if physik.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Physik') }}">Physik</a></td>
+                                <td>{{ physik.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if chemie.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Chemie') }}">Chemie</a></td>
+                                <td>{{ chemie.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if biologie.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Biologie') }}">Biologie</a></td>
+                                <td>{{ biologie.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if kunst.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Kunst') }}">Kunst</a></td>
+                                <td>{{ kunst.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if geschichte.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Geschichte') }}">Geschichte</a></td>
+                                <td>{{ geschichte.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if erdkunde.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Erdkunde') }}">Erdkunde</a></td>
+                                <td>{{ erdkunde.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if politik.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Politik') }}">Politik</a></td>
+                                <td>{{ politik.media }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if sport.access == 'Ja' %}
+                            <tr>
+                                <td><a href="{{ url_for('main.edit_subject', subject='Sport') }}">Sport</a></td>
+                                <td>{{ sport.media }}</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+{% endblock %}

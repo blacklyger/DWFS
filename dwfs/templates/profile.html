@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero is-primary">
+    <div class="hero-body">
+        <div class="container">
+            <h1 class="title">
+                Profil
+            </h1>
+            <h2 class="subtitle">
+                Willkommen {{ username }}
+            </h2>
+        </div>
+    </div>
+</section>
+
+<div class="columns">
+    <div class="container has-text-centered">
+        <div class="column is-half is-offset-one-quarter">
+            <section class="section">
+
+                {% if role == 't' %}
+
+                <p class="title">Passwort ändern</p>
+
+                <div class="box">
+                    {% with messages = get_flashed_messages(category_filter=['error', 'success']) %}
+                    {% if messages %}
+                    {% if messages[0].startswith('Bitte füllen Sie') %}
+                    <div class="notification is-danger">
+                        {{ messages[0] }}
+                    </div>
+                    {% elif messages[0].startswith('Die Passwörter stimmen nicht überein') %}
+                    <div class="notification is-danger">
+                        {{ messages[0] }}
+                    </div>
+                    {% elif messages[0].startswith('Das Passwort wurde erfolgreich') %}
+                    <div class="notification is-success">
+                        {{ messages[0] }}
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="/change_password">
+
+                        <div class="field">
+                            <div class="control">
+                                <input class="input is-large" type="password" name="password" placeholder="Passwort">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="control">
+                                <input class="input is-large" type="password" name="password_confirm"
+                                    placeholder="Passwort wiederholen">
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                        <button class="button is-block is-info is-large is-fullwidth">Ändern</button>
+                    </form>
+
+                </div>
+
+                {% elif role == 'p' %}
+
+                {% with messages = get_flashed_messages(category_filter=['permission_error']) %}
+                {% if messages %}
+                <div class="notification is-danger">
+                    {{ messages[0] }}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <div class="box">
+
+                    <p class="title">
+                        Willkommen {{ username }} <br>in deinem Profil.<br>
+                        Viel Spaß wünscht dir DWFS.
+                    </p>
+
+                    <a href="{{ url_for('main.index') }}" class="button is-primary">Startseite</a>
+                    <a href="{{ url_for('main.subjects') }}" class="button is-primary">Fächerübersicht</a>
+                    <a href="{{ url_for('auth.logout') }}" class="button is-primary">Abmelden</a>
+
+                </div>
+
+                {% endif %}
+
+            </section>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

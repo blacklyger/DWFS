@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero is-medium is-primary is-bold">
+    <div class="hero-body">
+        <div class="container">
+            <h1 class="title">
+                DWFS
+            </h1>
+            <h2 class="subtitle">
+                DWFS - Ein besseres Filesharing und Filehosting System als IServ
+            </h2>
+        </div>
+    </div>
+</section>
+
+<div class="tabs is-centered">
+    <ul>
+        <li id="about" onclick="do_it(this)" class="is-active"><a>Über DWFS</a></li>
+        <li id="hiw" onclick="do_it(this)"><a>Wie es funktioniert</a></li>
+        <li id="pre" onclick="do_it(this)"><a>Vorschau</a></li>
+    </ul>
+</div>
+
+<div class="columns has-background-dark">
+    <div id="about_column" class="column is-fullwidth is-6 is-offset-2">
+        <section class="section">
+            <div class="columns">
+                <div class="column is-half">
+                    <figure class="image is-128x128">
+                        <img class="is-rounded" src="{{ url_for('static', filename='dwfs_brand.png') }}">
+                    </figure>
+                </div>
+                <div class="column is-half">
+                    <div class="content has-text-white has-text-justified">
+                        <p class="title has-text-white">
+                            DWFS
+                        </p>
+                        <p class="subtitle has-text-white">
+                            Don't wanna wait for files and stuff
+                        </p><br>
+                        DWFS ist eine für Lehrer und Schüler entwickelte file sharing und hosting
+                        Platform. Ich empfand es für nötig diese Platform zu entwickeln, da Downloads
+                        von unserem bestehenden System (IServ) sehr lange dauern.<br>
+                        Doch dieses Problem gehört mit diesem System ab sofort der Vergangenheit an!
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div id="hiw_column" class="column is-fullwidth">
+        <section class="section">
+            <p class="title has-text-white has-text-centered">So funktioniert es ...</p><br>
+            <div class="columns">
+                <div class="column is-one-quarter has-text-white">
+                    <p class="subtitle has-text-white"><b>Schritt 1.</b></p>
+                    <div class="content">
+                        Melden Sie sich mit ihren Anmeldedaten an.
+                    </div>
+                </div>
+                <div class="column is-one-quarter has-text-white">
+                    <p class="subtitle has-text-white"><b>Schritt 2.</b></p>
+                    <div class="content">
+                        Suchen Sie sich das Fach aus, für das Sie Dateien hochladen wollen.
+                    </div>
+                </div>
+                <div class="column is-one-quarter has-text-white">
+                    <p class="subtitle has-text-white"><b>Schritt 3.</b></p>
+                    <div class="content">
+                        Laden Sie eine oder mehrere Datei/en für das Fach hoch.
+                    </div>
+                </div>
+                <div class="column is-one-quarter has-text-white">
+                    <p class="subtitle has-text-white"><b>Schritt 4.</b></p>
+                    <div class="content">
+                        Kopieren Sie den generierten Downloadlink aus der Übersicht.
+                        Mit diesem Link lässt sich die ausgewählte Datei herunterladen.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div id="pre_column" class="column is-fullwidth is-offset-2">
+        <section class="section">
+            ok
+        </section>
+    </div>
+</div>
+
+<script>
+    all = ['about', 'hiw', 'pre'];
+    all_columns = ['about_column', 'hiw_column', 'pre_column'];
+
+    for (i = 0; i < all.length; i++) {
+        element = document.getElementById(all[i]);
+
+        if (element.classList == 0) {
+            full_name = element.id + "_column";
+            ele = document.getElementById(full_name);
+            ele.style.display = "none";
+        }
+    }
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="hero-body">
+    <div class="container has-text-centered">
+
+        <div class="column is-half is-offset-one-quarter">
+
+            <h3 class="title">Neuen Nutzer hinzufügen</h3>
+            <div class="box">
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <div class="notification is-danger">
+                    {{ messages[0] }}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="/register">
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-large" name="username" placeholder="Nutzername">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-large" name="role" placeholder="Autorität">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-large" type="password" name="password" placeholder="Passwort">
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                    <button class="button is-block is-info is-large is-fullwidth">Registrieren</button>
+                </form>
+            </div>
+
+            <div class="box">
+                <form method="POST" action="/add_subject">
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-large" name="username" placeholder="Nutzername">
+                        </div>
+                    </div>
+                
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-large" name="subject" placeholder="Fach">
+                        </div>
+                    </div>
+                
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                
+                    <button class="button is-block is-info is-large is-fullwidth">Hinzufügen</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
