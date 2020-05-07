@@ -11,7 +11,7 @@ from string import digits, ascii_letters
 
 main = Blueprint('main', __name__)
 
-abs_path = "C:\\Users\\Simon\\Desktop\\XTEC\\computer_science\\software\\dwfs\\dwfs\\static\\upload"
+abs_path = "/home/lyger/dwfs/dwfs/static/upload"
 chars = digits + ascii_letters
 
 all_subjects = [
