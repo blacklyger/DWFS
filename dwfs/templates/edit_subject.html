@@ -70,7 +70,7 @@
 
 <div class="columns">
 
-    <div class="column is-half">
+    <div class="column is-fullwidth">
         <section class="section">
             <p class="title has-text-centered">Medien hinzufügen</p>
             <div class="box has-text-centered">
@@ -91,8 +91,7 @@
                             <div class="control">
                                 <div class="file is-large is-centered">
                                     <label class="file-label">
-                                        <input class="file-input" id="fileupload" onchange="get_all_files()" type="file"
-                                            accept=".txt,.html" name="media" multiple>
+                                        <input class="file-input" id="fileupload" onchange="get_all_files()" type="file" name="media" multiple>
                                         <span class="file-cta">
                                             <i class="fas fa-upload"></i>
                                             <span class="file-label">
@@ -112,11 +111,11 @@
                     <button class="button is-block is-info is-large is-fullwidth">Hinzufügen</button>
                 </form>
             </div>
-        </section>
-    </div>
-
-    <div class="column is-half">
-        <section class="section">
+	  </section>
+</div>
+	
+	<div class="column is-two-thirds">
+	<section class="section">
             <p class="title has-text-centered">Übersicht</p>
             <div class="box">
                 <div class="content has-text-centered">
@@ -142,19 +141,21 @@
                             <thead>
                                 <tr>
                                     <th class="has-text-centered"><abbr title="ID">ID</abbr></th>
-                                    <th class="has-text-centered"><abbr title="Filename">Dateiname</abbr></th>
+                                    <th class="has-text-centered"><abbr title="Filename">Dateiname <br>[Dateigröße]</abbr></th>
+                                    <th class="has-text-centered"><abbr title="Copy">Download</abbr></th>
                                     <th class="has-text-centered"><abbr title="Remove">Alle <input type="checkbox" onclick="check(this)"></abbr></th>
-                                    <th class="has-text-centered"><abbr title="Copy">Downloadlink</abbr></th>
                                 </tr>
                             </thead>
 
                             <tbody>
-                                {% for id, fname, uid in data %}
+                                {% for id, fname, file_size, uid in data %}
                                 <tr>
                                     <td>{{ id }}</td>
-                                    <td><a target="_blank" href="{{ url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + fname) }}">{{ fname }}</a></td>
+                                    <td><a target="_blank" href="{{ url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + get_secure_filename(fname)) }}">{{ fname }} <br>[{{file_size}} MB]</a></td>
+                                    <td class="has-text-centered">{{ url_for('main.download_file', uid=uid, _external=True) }}<br>
+                                    <a href="{{ url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + get_secure_filename(fname)) }}"
+                                        class="button is-primary" download>Download</a></td>
                                     <td class="has-text-centered"><input name="media_to_remove" type="checkbox" value="{{fname}}"></td>
-                                    <td class="has-text-centered">{{ url_for('main.download_file', uid=uid, _external=True) }}</td>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -174,9 +175,8 @@
                         <input type="hidden" name="current_subject" value="{{ subject }}" />
                     </form>
                 </div>
-            </div>
-        </section>
-    </div>
+		</section>
+	</div>
 
 </div>
 

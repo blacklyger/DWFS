@@ -59,7 +59,11 @@
 <div class="notification is-danger has-text-centered">
     {{ messages[0] }}
 </div>
-{% elif messages[0].startswith('Sie haben (noch) keinen Zugang') %}
+{% elif messages[0].startswith('Keine Fächer gefunden!') %}
+<div class="notification is-danger has-text-centered">
+    {{ messages[0] }}
+</div>
+{% elif messages[0].startswith('Bitte füllen Sie das Feld aus!') %}
 <div class="notification is-danger has-text-centered">
     {{ messages[0] }}
 </div>
@@ -67,110 +71,64 @@
 {% endif %}
 {% endwith %}
 
+<br>
+<div class="columns">
+    <div class="column is-half is-offset-one-quarter">
+        <form method="POST" action="/add_subject">
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="subject_name" placeholder="Fach">
+                </div>
+            </div>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button class="button is-block is-primary is-large is-fullwidth">Hinzufügen</button>
+        </form>
+    </div>
+</div>
+
 <div class="columns">
     <div class="column is-fullwidth">
         <section class="section">
             <div class="box">
-                <div class="content has-text-centered">
-                    <p class="title">Übersicht</p>
-                </div>
-                <div class="content has-text-centered">
-                    <table class="table is-bordered">
-                        <thead>
-                            <tr>
-                                <th><abbr title="Subject">Fach</abbr></th>
-                                <th><abbr title="Medien">Medien</abbr></th>
-                            </tr>
-                        </thead>
+                
+                <form method="POST" action="/remove_subject">
+                    <div class="has-text-centered">
+                        <button class="button is-danger">Löschen</button>
+                    </div><br>
 
-                        <tbody>
-                            {% if mathematik.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Mathematik') }}">Mathematik</a></td>
-                                <td>{{ mathematik.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if deutsch.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Deutsch') }}">Deutsch</a></td>
-                                <td>{{ deutsch.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if englisch.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Englisch') }}">Englisch</a></td>
-                                <td>{{ englisch.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if französisch.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Französisch') }}">Französisch</a></td>
-                                <td>{{ französisch.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if spanisch.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Spanisch') }}">Spanisch</a></td>
-                                <td>{{ spanisch.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if latein.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Latein') }}">Latein</a></td>
-                                <td>{{ latein.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if physik.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Physik') }}">Physik</a></td>
-                                <td>{{ physik.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if chemie.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Chemie') }}">Chemie</a></td>
-                                <td>{{ chemie.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if biologie.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Biologie') }}">Biologie</a></td>
-                                <td>{{ biologie.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if kunst.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Kunst') }}">Kunst</a></td>
-                                <td>{{ kunst.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if geschichte.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Geschichte') }}">Geschichte</a></td>
-                                <td>{{ geschichte.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if erdkunde.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Erdkunde') }}">Erdkunde</a></td>
-                                <td>{{ erdkunde.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if politik.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Politik') }}">Politik</a></td>
-                                <td>{{ politik.media }}</td>
-                            </tr>
-                            {% endif %}
-                            {% if sport.access == 'Ja' %}
-                            <tr>
-                                <td><a href="{{ url_for('main.edit_subject', subject='Sport') }}">Sport</a></td>
-                                <td>{{ sport.media }}</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                </div>
+                    <div class="content has-text-centered">
+                        <table class="table is-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="has-text-centered"><abbr title="Subject">Fach</abbr></th>
+                                    <th class="has-text-centered"><abbr title="Medien">Medien</abbr></th>
+                                    <th class="has-text-centered"><abbr title="Alle">Alle <input type="checkbox" onclick="check(this)"></abbr></th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for subject, media_len in subject_names %}
+                                <tr>
+                                    <td class="has-text-centered"><a href="{{ url_for('main.edit_subject', subject=subject) }}">{{ subject }}</a></td>
+                                    <td class="has-text-centered">{{ media_len }}</td>
+                                    <td class="has-text-centered"><input name="subject_to_remove" type="checkbox" value="{{ subject }}"></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <script>
+                            function check(source) {
+                                checkboxes = document.getElementsByName('subject_to_remove');
+                                for (var i = 0, n = checkboxes.length; i < n; i++) {
+                                    checkboxes[i].checked = source.checked;
+                                }
+                            }
+                        </script>
+
+                    </div>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                </form>
             </div>
         </section>
     </div>

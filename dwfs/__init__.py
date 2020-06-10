@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from werkzeug.utils import secure_filename
 
 db = SQLAlchemy()
 csrf = CSRFProtect()
@@ -13,6 +14,7 @@ app.config['SECRET_KEY'] = 'REMOVED'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
 
 db.init_app(app)
 csrf.init_app(app)
@@ -37,5 +39,11 @@ app.register_blueprint(auth_blueprint)
 from .main import main as main_blueprint
 app.register_blueprint(main_blueprint)
 
-#if __name__ == "__main__":
-#    app.run(host="0.0.0.0")
+@app.context_processor
+def secure_fname():
+    def get_secure_filename(fname):
+        return secure_filename(fname)
+    return dict(get_secure_filename=get_secure_filename)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0")
