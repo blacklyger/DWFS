@@ -48,9 +48,36 @@
     <button onclick="close_help_modal()" class="modal-close is-large" aria-label="close"></button>
 </div>
 
+<div id="rename_file_modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+        <div class="box">
+            <form method="POST" action="/rename_file">
+                <div class="field">
+                    <div class="control">
+                        <input name="old_filename" class="input is-large" type="text" placeholder="Alter Dateiname">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <input name="new_filename" class="input is-large" type="text" placeholder="Neuer Dateiname">
+                    </div>
+                </div>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="current_subject" value="{{ subject }}" />
+                <button class="button is-block is-primary is-large is-fullwidth">Umbenennen</button>
+            </form>
+        </div>
+    </div>
+    <button onclick="close_rename_file_modal()" class="modal-close is-large" aria-label="close"></button>
+</div>
+
 <div class="columns has-background-dark">
-    <div class="column is-fullwidth has-text-centered has-text-white">
+    <div class="column is-half has-text-centered has-text-white">
         <button onclick="open_help_modal()" class="button is-info">Hilfe</button>
+    </div>
+    <div class="column is-half has-text-centered has-text-white">
+        <button onclick="open_rename_file_modal()" class="button is-info">Datei umbenennen</button>
     </div>
 </div>
 
@@ -61,6 +88,14 @@
     {{ messages[0] }}
 </div>
 {% elif messages[0].startswith('Bitte wählen Sie mindestens eine Datei aus') %}
+<div class="notification is-danger has-text-centered">
+    {{ messages[0] }}
+</div>
+{% elif messages[0].startswith('Die Dateiendung') %}
+<div class="notification is-danger has-text-centered">
+    {{ messages[0] }}
+</div>
+{% elif messages[0].startswith('Die Datei mit dem Namen') %}
 <div class="notification is-danger has-text-centered">
     {{ messages[0] }}
 </div>
@@ -150,10 +185,12 @@
                             <tbody>
                                 {% for id, fname, file_size, uid in data %}
                                 <tr>
+                                    <!--url_for('main.download_file', uid=uid)-->
+                                    <!--url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + get_secure_filename(fname))-->
                                     <td>{{ id }}</td>
-                                    <td><a target="_blank" href="{{ url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + get_secure_filename(fname)) }}">{{ fname }} <br>[{{file_size}} MB]</a></td>
+                                    <td><a target="_blank" href="{{ url_for('main.download_file', uid=uid) }}">{{ fname }} <br>[{{file_size}} MB]</a></td>
                                     <td class="has-text-centered">{{ url_for('main.download_file', uid=uid, _external=True) }}<br>
-                                    <a href="{{ url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + get_secure_filename(fname)) }}"
+                                    <a href="{{ url_for('main.download_file', uid=uid) }}"
                                         class="button is-primary" download>Download</a></td>
                                     <td class="has-text-centered"><input name="media_to_remove" type="checkbox" value="{{fname}}"></td>
                                     </td>

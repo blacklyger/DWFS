@@ -22,12 +22,37 @@ function do_it(it) {
 
 }
 
+// TODO: Rewrite this, it's fucking horrible!
 function open_help_modal() {
     document.getElementById('help_modal').classList.add('is-active');
 }
 
 function close_help_modal() {
     document.getElementById('help_modal').classList.remove('is-active');
+}
+
+function open_add_modal() {
+    document.getElementById("add_subject_modal").classList.add('is-active');
+}
+
+function close_add_modal() {
+    document.getElementById("add_subject_modal").classList.remove('is-active');
+}
+
+function open_rename_modal() {
+    document.getElementById("rename_subject_modal").classList.add('is-active');
+}
+
+function close_rename_modal() {
+    document.getElementById("rename_subject_modal").classList.remove('is-active');
+}
+
+function open_rename_file_modal() {
+    document.getElementById("rename_file_modal").classList.add("is-active");
+}
+
+function close_rename_file_modal() {
+    document.getElementById("rename_file_modal").classList.remove("is-active");
 }
 
 function get_all_files() {
@@ -66,3 +91,26 @@ function copy_link(it) {
     el.select();
     document.execCommand('copy');
 }
+
+/*
+function lolly() {
+
+    var ctoken = $("#ctoken").val();
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", ctoken)
+            }
+        }
+    })
+
+    $.ajax({
+        method: "POST",
+        url: "/lollypop",
+        data: {
+            word: $("#haha").val()
+        }
+    });
+}
+*/

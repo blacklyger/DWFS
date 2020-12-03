@@ -6,10 +6,10 @@
     <div class="hero-body">
         <div class="container">
             <h1 class="title">
-                Fächerübersicht
+                Übersicht
             </h1>
             <h2 class="subtitle">
-                Hier können Sie alle Fächer einsehen
+                Hier können Sie ihre Fächer einsehen
             </h2>
         </div>
     </div>
@@ -27,17 +27,11 @@
                     <ul>
                         <li><b>Fach</b></li>
                         <div class="content">
-                            Schulfach, für das Medien bereit gestellt werden sollen.
+                            Fach, für das Medien bereit gestellt werden sollen.
                         </div>
                         <li><b>Medien</b></li>
                         <div class="content">
                             Totale Anzahl an Medien die momentan existieren.
-                        </div>
-                        <li><b>Zugang</b></li>
-                        <div class="content">
-                            Status ob Sie Zugang zu diesem Fach haben.<br><br>
-                            <i>Ja: Sie haben Zugang zu diesem Fach.</i><br>
-                            <i>Nein: Sie haben keinen Zugang zu diesem Fach.</i>
                         </div>
                     </ul>
                 </div>
@@ -47,9 +41,56 @@
     <button onclick="close_help_modal()" class="modal-close is-large" aria-label="close"></button>
 </div>
 
+<div id="add_subject_modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+        <div class="box">
+            <form method="POST" action="/add_subject">
+                <div class="field">
+                    <div class="control">
+                        <input class="input is-large" type="text" name="subject_name" placeholder="Fach">
+                    </div>
+                </div>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button class="button is-block is-primary is-large is-fullwidth">Hinzufügen</button>
+            </form>
+        </div>
+    </div>
+    <button onclick="close_add_modal()" class="modal-close is-large" aria-label="close"></button>
+</div>
+
+<div id="rename_subject_modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+        <div class="box">
+            <form method="POST" action="/rename_subject">
+                <div class="field">
+                    <div class="control">
+                        <input name="old_subject_name" class="input is-large" type="text" placeholder="Fachname">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <input name="new_subject_name" class="input is-large" type="text" placeholder="Neuer Fachname">
+                    </div>
+                </div>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="button is-block is-primary is-large is-fullwidth">Umbenennen</button>
+            </form>
+        </div>
+    </div>
+    <button onclick="close_rename_modal()" class="modal-close is-large" aria-label="close"></button>
+</div>
+
 <div class="columns has-background-dark">
-    <div class="column is-fullwidth has-text-centered has-text-white">
+    <div class="column is-one-third has-text-centered has-text-white">
         <button onclick="open_help_modal()" class="button is-info">Hilfe</button>
+    </div>
+    <div class="column is-one-third has-text-centered has-text-white">
+        <button onclick="open_add_modal()" class="button is-info">Fach hinzufügen</button>
+    </div>
+    <div class="column is-one-third has-text-centered has-text-white">
+        <button onclick="open_rename_modal()" class="button is-info">Fach umbenennen</button>
     </div>
 </div>
 
@@ -70,21 +111,6 @@
 {% endif %}
 {% endif %}
 {% endwith %}
-
-<br>
-<div class="columns">
-    <div class="column is-half is-offset-one-quarter">
-        <form method="POST" action="/add_subject">
-            <div class="field">
-                <div class="control">
-                    <input class="input is-large" type="text" name="subject_name" placeholder="Fach">
-                </div>
-            </div>
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button class="button is-block is-primary is-large is-fullwidth">Hinzufügen</button>
-        </form>
-    </div>
-</div>
 
 <div class="columns">
     <div class="column is-fullwidth">
@@ -127,7 +153,7 @@
                         </script>
 
                     </div>
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input id="ctoken" type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 </form>
             </div>
         </section>

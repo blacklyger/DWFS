@@ -8,12 +8,12 @@ from os import mkdir, remove, listdir, path
 from werkzeug.utils import secure_filename
 from random import choice
 from string import digits, ascii_letters
-from shutil import rmtree
+from shutil import rmtree, move
 from pathlib import Path
 
 main = Blueprint('main', __name__)
 
-abs_path = Path("C:/Users/Simon/Desktop/XTEC/computer_science/software/DWFS/dwfs/static/upload")
+abs_path = Path("/home/simon/projects/DWFS/dwfs/data")
 chars = digits + ascii_letters
 
 ALLOWED_EXTENSIONS = [
@@ -22,7 +22,7 @@ ALLOWED_EXTENSIONS = [
     "wav", "doc", "odp", "xls",
     "xlsx", "ppt", "pptm", "ott",
     "ods", "html", "JPG", "jpg",
-    "jpeg"
+    "jpeg", "tex", "opus", "png"
 ]
 
 def calculate_amount_of_media(subject):
@@ -31,7 +31,6 @@ def calculate_amount_of_media(subject):
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 @main.route("/")
 def index():
@@ -94,13 +93,13 @@ def add_media():
     files = request.files.getlist('media')
     current_subject = request.form.get('current_subject')
 
-    if not files:
+    if not files or files[0].filename == "":
         flash("Bitte wählen Sie mindestens eine Datei aus.", 'error')
         return redirect(url_for('main.edit_subject', subject=current_subject))
     
     all_filenames  = [secure_filename(f.filename) for f in files]
 
-    existing_media = [secure_filename(f.filename)       for f        in Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).all()]
+    existing_media = [secure_filename(f.filename) for f in Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).all()]
     existing_files = [filename         for filename in existing_media if filename in all_filenames]
     all_uids       = [obj.unique_id    for obj      in Media.query.filter_by(name=current_user.username).all()]
 
@@ -109,10 +108,15 @@ def add_media():
         return redirect(url_for('main.edit_subject', subject=current_subject))
 
     for filename in all_filenames:
+
+        if not allowed_file(filename):
+            flash(f"Die Dateiendung \"{filename.rsplit('.')[1]}\" ist nicht erlaubt!", 'error')
+            return redirect(url_for("main.edit_subject", subject=current_subject))
+
         uid = ''.join(choice(chars) for i in range(10))
         if uid in all_uids:
             continue
-        new_media_object = Media(current_user.username, current_subject, filename, uid)
+        new_media_object = Media(current_user.username, current_subject, filename, f"{filename.rsplit('.')[0]}_{uid}")
         db.session.add(new_media_object)
     db.session.commit()
 
@@ -161,8 +165,8 @@ def download_file(uid):
     if not filtered_uid:
         return redirect("https://origin7.de")
 
-    file_path  = Path(abs_path, f"{filtered_uid.name}/{filtered_uid.subject}/{secure_filename(filtered_uid.filename)}")
-    return send_file(file_path, as_attachment=True)
+    file_path = Path(abs_path, f"{filtered_uid.name}/{filtered_uid.subject}/{secure_filename(filtered_uid.filename)}")
+    return send_file(file_path)
 
 
 @main.route("/change_password", methods=['POST'])
@@ -229,6 +233,65 @@ def remove_subject():
         rmtree(file_path)
 
     return redirect(url_for('main.subjects'))
+
+
+@main.route("/rename_subject", methods=["POST"])
+def rename_subject():
+    old_subject_name = request.form.get("old_subject_name")
+    new_subject_name = request.form.get("new_subject_name")
+
+    subjects_match = Subjects.query.filter_by(name=current_user.username).filter_by(subject=old_subject_name).first()
+    media_match    = Media.query.filter_by(subject=old_subject_name).all()
+
+    for mmatch in media_match:
+        mmatch.subject = new_subject_name
+    db.session.commit()
+
+    if not subjects_match:
+        flash(f"Das Fach \"{old_subject_name}\" existiert nicht!", 'error')
+        return redirect(url_for('main.subjects'))
+
+    subjects_match.subject = new_subject_name
+    db.session.commit()
+
+    move(
+        str(Path(abs_path, f"{current_user.username}/{old_subject_name}")), 
+        str(Path(abs_path, f"{current_user.username}/{new_subject_name}"))
+    )
+
+    return redirect(url_for("main.subjects"))
+
+
+@main.route("/rename_file", methods=["POST"])
+def rename_file():
+    old_filename    = request.form.get("old_filename")
+    new_filename    = request.form.get("new_filename")
+    current_subject = request.form.get("current_subject")
+
+    if old_filename.rsplit(".")[1] != new_filename.rsplit(".")[1]:
+        flash("Die Dateiendungen stimmen nicht überein!", 'error')
+        return redirect(url_for("main.edit_subject", subject=current_subject))
+
+    match          = Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).filter_by(filename=old_filename).first()
+
+    if not match:
+        flash(f"Die Datei mit dem Namen \"{old_filename}\" existiert nicht!", 'error')
+        return redirect(url_for("main.edit_subject", subject=current_subject))
+
+    match.filename = new_filename
+    db.session.commit()
+
+    Path(
+        abs_path, 
+        f"{current_user.username}/{current_subject}/{old_filename}"
+    ).rename(
+        Path(
+            abs_path, 
+            f"{current_user.username}/{current_subject}/{new_filename}"
+        )
+    )
+
+    return redirect(url_for("main.edit_subject", subject=current_subject))
 
 @main.route("/add_subject_dev", methods=['POST'])
 def add_subject_dev():
