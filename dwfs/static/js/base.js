@@ -22,38 +22,16 @@ function do_it(it) {
 
 }
 
-// TODO: Rewrite this, it's fucking horrible!
-function open_help_modal() {
-    document.getElementById('help_modal').classList.add('is-active');
+
+function open_modal(modal_name) {
+    document.getElementById(modal_name).classList.add('is-active');
 }
 
-function close_help_modal() {
-    document.getElementById('help_modal').classList.remove('is-active');
+
+function close_modal(modal_name) {
+    document.getElementById(modal_name).classList.remove('is-active');
 }
 
-function open_add_modal() {
-    document.getElementById("add_subject_modal").classList.add('is-active');
-}
-
-function close_add_modal() {
-    document.getElementById("add_subject_modal").classList.remove('is-active');
-}
-
-function open_rename_modal() {
-    document.getElementById("rename_subject_modal").classList.add('is-active');
-}
-
-function close_rename_modal() {
-    document.getElementById("rename_subject_modal").classList.remove('is-active');
-}
-
-function open_rename_file_modal() {
-    document.getElementById("rename_file_modal").classList.add("is-active");
-}
-
-function close_rename_file_modal() {
-    document.getElementById("rename_file_modal").classList.remove("is-active");
-}
 
 function get_all_files() {
     var data = document.getElementById('fileupload').files;
@@ -81,6 +59,7 @@ function get_all_files() {
     $('#filetable').html(file_data);
 }
 
+
 function copy_link(it) {
     
     var el = document.createElement('input');
@@ -92,8 +71,8 @@ function copy_link(it) {
     document.execCommand('copy');
 }
 
-/*
-function lolly() {
+
+$(function() {
 
     var ctoken = $("#ctoken").val();
 
@@ -105,12 +84,19 @@ function lolly() {
         }
     })
 
-    $.ajax({
-        method: "POST",
-        url: "/lollypop",
-        data: {
-            word: $("#haha").val()
-        }
+    $("a#regenerate_button").on('click', function(e) {
+        $.ajax({
+            method: "POST",
+            url: "/regenerate_uids",
+            data: {
+                current_subject: $("#current_subject").val(),
+                current_path: window.location.href
+            }
+        }).done(function(data) {
+            if (data == "true") {
+                location.reload();
+            }
+        });
+        e.preventDefault();
     });
-}
-*/
+});

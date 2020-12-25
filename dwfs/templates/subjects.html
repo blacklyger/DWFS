@@ -38,7 +38,7 @@
             </div>
         </div>
     </div>
-    <button onclick="close_help_modal()" class="modal-close is-large" aria-label="close"></button>
+    <button onclick="close_modal('help_modal')" class="modal-close is-large" aria-label="close"></button>
 </div>
 
 <div id="add_subject_modal" class="modal">
@@ -56,7 +56,7 @@
             </form>
         </div>
     </div>
-    <button onclick="close_add_modal()" class="modal-close is-large" aria-label="close"></button>
+    <button onclick="close_modal('add_subject_modal')" class="modal-close is-large" aria-label="close"></button>
 </div>
 
 <div id="rename_subject_modal" class="modal">
@@ -79,18 +79,18 @@
             </form>
         </div>
     </div>
-    <button onclick="close_rename_modal()" class="modal-close is-large" aria-label="close"></button>
+    <button onclick="close_modal('rename_subject_modal')" class="modal-close is-large" aria-label="close"></button>
 </div>
 
 <div class="columns has-background-dark">
     <div class="column is-one-third has-text-centered has-text-white">
-        <button onclick="open_help_modal()" class="button is-info">Hilfe</button>
+        <button onclick="open_modal('help_modal')" class="button is-info">Hilfe</button>
     </div>
     <div class="column is-one-third has-text-centered has-text-white">
-        <button onclick="open_add_modal()" class="button is-info">Fach hinzufügen</button>
+        <button onclick="open_modal('add_subject_modal')" class="button is-info">Fach hinzufügen</button>
     </div>
     <div class="column is-one-third has-text-centered has-text-white">
-        <button onclick="open_rename_modal()" class="button is-info">Fach umbenennen</button>
+        <button onclick="open_modal('rename_subject_modal')" class="button is-info">Fach umbenennen</button>
     </div>
 </div>
 

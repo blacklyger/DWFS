@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero is-primary">
+    <div class="hero-body">
+        <div class="container">
+            <h1 class="title">
+                Konto Anfragen
+            </h1>
+            <h2 class="subtitle">
+                Hier können Sie alle aktuellen Konto Anfragen einsehen
+            </h2>
+        </div>
+    </div>
+</section>
+
+<div class="columns">
+    <div class="container has-text-centered">
+        <div class="column is-two-thirds is-12">
+            <section class="section">
+                <div class="box">
+
+                    <form method="POST" action="/create_request_account">
+
+                        <div class="field">
+                            <button class="button is-info" type="submit">Anwenden</button>
+                        </div>
+
+                        <div class="content has-text-centered">
+                            <table class="table is-bordered">
+
+                                <thead>
+                                    <tr>
+                                        <th class="has-text-centered"><abbr title="ID"></abbr>ID</th>
+                                        <th class="has-text-centered"><abbr title="Nutzername">Nutzername</abbr></th>
+                                        <th class="has-text-centered"><abbr title="Datum">Datum</abbr></th>
+                                        <th class="has-text-centered"><abbr title="IP-Adresse">IP-Adresse</abbr></th>
+                                        <th class="has-text-centered"><abbr title="Erstellen">Erstellen</abbr></th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for id, username, date, ip in requests %}
+                                    <tr>
+                                        <td class="has-text-centered">{{ id }}</td>
+                                        <td class="has-text-centered">{{ username }}</td>
+                                        <td class="has-text-centered">{{ date }}</td>
+                                        <td class="has-text-centered">{{ ip }}</td>
+                                        <td class="has-text-centered">
+                                            <div class="select">
+                                                <select name="access">
+                                                    <option value="no {{ username }}">Nein</option>
+                                                    <option value="yes {{ username }}">Ja</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+
+                            </table>
+                        </div>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

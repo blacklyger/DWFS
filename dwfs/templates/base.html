@@ -39,6 +39,13 @@
                         <a href="{{ url_for('main.index') }}" class="navbar-item">
                             Startseite
                         </a>
+                        
+                        {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('main.request_account') }}" class="navbar-item">
+                            <strong>Registrieren</strong>
+                        </a>
+                        {% endif %}
+
                         {% if current_user.is_authenticated %}
 
                         <a href="{{ url_for('main.subjects') }}" class="navbar-item">
@@ -48,6 +55,14 @@
                         <a href="{{ url_for('main.profile') }}" class="navbar-item">
                             <strong>Profil</strong>
                         </a>
+
+                        {% if current_user.is_admin %}
+
+                        <a href="{{ url_for('main.show_account_requests') }}" class="navbar-item">
+                            <strong>Kontoanfragen</strong>
+                        </a>
+
+                        {% endif %}
 
                         <a href="{{ url_for('auth.logout') }}" class="navbar-item">
                             <strong>Abmelden</strong>

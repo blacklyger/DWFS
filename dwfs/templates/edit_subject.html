@@ -45,39 +45,72 @@
             </div>
         </div>
     </div>
-    <button onclick="close_help_modal()" class="modal-close is-large" aria-label="close"></button>
+    <button onclick="close_modal('help_modal')" class="modal-close is-large" aria-label="close"></button>
 </div>
 
-<div id="rename_file_modal" class="modal">
+<div id="add_folder_modal" class="modal">
     <div class="modal-background"></div>
     <div class="modal-content">
-        <div class="box">
+        <div class="box has-text-centered">
+            <form method="POST" action="/add_folder">
+                <div class="field">
+                    <div class="control">
+                        <input name="folder_name" class="input is-large" placeholder="Ordnername">
+                    </div>
+                </div>
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" name="current_subject" value="{{ subject }}" />
+                <input id="current_path" type="hidden" name="current_path">
+                <button class="button is-block is-primary is-large is-fullwidth">Hinzufügen</button>
+            </form>
+        </div>
+    </div>
+    <button onclick="close_modal('add_folder_modal')" class="modal-close is-large" aria-label="close"></button>
+</div>
+
+<div id="rename_modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+        <div class="box has-text-centered">
             <form method="POST" action="/rename_file">
                 <div class="field">
                     <div class="control">
-                        <input name="old_filename" class="input is-large" type="text" placeholder="Alter Dateiname">
+                        <input name="old_filename" class="input is-large" type="text" placeholder="Alter Name">
                     </div>
                 </div>
                 <div class="field">
                     <div class="control">
-                        <input name="new_filename" class="input is-large" type="text" placeholder="Neuer Dateiname">
+                        <input name="new_filename" class="input is-large" type="text" placeholder="Neuer Name">
                     </div>
                 </div>
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="field">
+                    <div class="select">
+                        <select name="selector">
+                            <option>Datei</option>
+                            <option>Ordner</option>
+                        </select>
+                    </div>
+                </div>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" id="rename_path" name="rename_path" />
                 <input type="hidden" name="current_subject" value="{{ subject }}" />
                 <button class="button is-block is-primary is-large is-fullwidth">Umbenennen</button>
             </form>
         </div>
     </div>
-    <button onclick="close_rename_file_modal()" class="modal-close is-large" aria-label="close"></button>
+    <button onclick="close_modal('rename_modal')" class="modal-close is-large" aria-label="close"></button>
 </div>
 
 <div class="columns has-background-dark">
-    <div class="column is-half has-text-centered has-text-white">
-        <button onclick="open_help_modal()" class="button is-info">Hilfe</button>
+    <div class="column is-one-third has-text-centered has-text-white">
+        <button onclick="open_modal('help_modal')" class="button is-info">Hilfe</button>
     </div>
-    <div class="column is-half has-text-centered has-text-white">
-        <button onclick="open_rename_file_modal()" class="button is-info">Datei umbenennen</button>
+    <div class="column is-one-third has-text-centered has-text-white">
+        <button onclick="open_modal('add_folder_modal')" class="button is-info">Ordner hinzufügen</button>
+    </div>
+    <div class="column is-one-third has-text-centered has-text-white">
+        <button onclick="open_modal('rename_modal')" class="button is-info">Umbenennen</button>
     </div>
 </div>
 
@@ -92,6 +125,10 @@
     {{ messages[0] }}
 </div>
 {% elif messages[0].startswith('Die Dateiendung') %}
+<div class="notification is-danger has-text-centered">
+    {{ messages[0] }}
+</div>
+{% elif messages[0].startswith('Der Ordner') %}
 <div class="notification is-danger has-text-centered">
     {{ messages[0] }}
 </div>
@@ -126,7 +163,8 @@
                             <div class="control">
                                 <div class="file is-large is-centered">
                                     <label class="file-label">
-                                        <input class="file-input" id="fileupload" onchange="get_all_files()" type="file" name="media" multiple>
+                                        <input class="file-input" id="fileupload" onchange="get_all_files()" type="file"
+                                            name="media" multiple>
                                         <span class="file-cta">
                                             <i class="fas fa-upload"></i>
                                             <span class="file-label">
@@ -143,78 +181,117 @@
                     </div>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <input type="hidden" name="current_subject" value="{{ subject }}" />
+                    <input id="file_path" type="hidden" name="file_path" />
                     <button class="button is-block is-info is-large is-fullwidth">Hinzufügen</button>
                 </form>
             </div>
-	  </section>
-</div>
-	
-	<div class="column is-two-thirds">
-	<section class="section">
+        </section>
+    </div>
+
+    <div class="column is-two-thirds">
+        <section class="section">
             <p class="title has-text-centered">Übersicht</p>
-            <div class="box">
-                <div class="content has-text-centered">
+            <div class="box has-text-centered">
 
-                    {% with messages = get_flashed_messages(category_filter=['media_error', 'media_success']) %}
-                    {% if messages %}
-                    {% if messages[0].startswith('Es wurden keine Medien gefunden') %}
-                    <div class="notification is-danger has-text-centered">
-                        {{ messages[0] }}
-                    </div>
-                    {% elif messages[0].startswith('Folgende Medien wurden erfolgreich') %}
-                    <div class="notification is-info has-text-centered">
-                        {{ messages[0] }}
-                    </div>
-                    {% endif %}
-                    {% endif %}
-                    {% endwith %}
 
-                    <form method="POST" action="/remove_media">
-                        <button class="button is-danger">Löschen</button><br><br>
-                        <table class="table is-bordered">
-
-                            <thead>
-                                <tr>
-                                    <th class="has-text-centered"><abbr title="ID">ID</abbr></th>
-                                    <th class="has-text-centered"><abbr title="Filename">Dateiname <br>[Dateigröße]</abbr></th>
-                                    <th class="has-text-centered"><abbr title="Copy">Download</abbr></th>
-                                    <th class="has-text-centered"><abbr title="Remove">Alle <input type="checkbox" onclick="check(this)"></abbr></th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {% for id, fname, file_size, uid in data %}
-                                <tr>
-                                    <!--url_for('main.download_file', uid=uid)-->
-                                    <!--url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + get_secure_filename(fname))-->
-                                    <td>{{ id }}</td>
-                                    <td><a target="_blank" href="{{ url_for('main.download_file', uid=uid) }}">{{ fname }} <br>[{{file_size}} MB]</a></td>
-                                    <td class="has-text-centered">{{ url_for('main.download_file', uid=uid, _external=True) }}<br>
-                                    <a href="{{ url_for('main.download_file', uid=uid) }}"
-                                        class="button is-primary" download>Download</a></td>
-                                    <td class="has-text-centered"><input name="media_to_remove" type="checkbox" value="{{fname}}"></td>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-
-                        </table>
-
-                        <script>
-                            function check(source) {
-                                checkboxes = document.getElementsByName('media_to_remove');
-                                for (var i = 0, n = checkboxes.length; i < n; i++) {
-                                    checkboxes[i].checked = source.checked;
-                                }
-                            }
-                        </script>
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                        <input type="hidden" name="current_subject" value="{{ subject }}" />
-                    </form>
+                {% with messages = get_flashed_messages(category_filter=['media_error', 'media_success']) %}
+                {% if messages %}
+                {% if messages[0].startswith('Es wurden keine Medien gefunden') %}
+                <div class="notification is-danger has-text-centered">
+                    {{ messages[0] }}
                 </div>
-		</section>
-	</div>
+                {% elif messages[0].startswith('Folgende Medien wurden erfolgreich') %}
+                <div class="notification is-info has-text-centered">
+                    {{ messages[0] }}
+                </div>
+                {% endif %}
+                {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="/remove_media">
+                    <button class="button is-danger">Löschen</button>
+                    <a id="regenerate_button" class="button is-info">UIDs neugenerieren</a>
+                    <br><br>
+                    <table class="table is-bordered is-fullwidth">
+
+                        <thead>
+                            <tr>
+                                <th class="has-text-centered"><abbr title="Typ">Typ</abbr></th>
+                                <th class="has-text-centered"><abbr title="Filename">Name</abbr></th>
+                                <th class="has-text-centered"><abbr title="Copy">Download / Teilen</abbr></th>
+                                <th class="has-text-centered">
+                                    <abbr title="Remove">Alle <input type="checkbox" onclick="check(this)"></abbr>
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for id, fname, file_size, is_dir, path, uid in data %}
+
+                            {% if is_dir %}
+
+                            <tr>
+                                <td>
+                                    <figure class="image is-32x32"><img
+                                            src="{{ url_for('static', filename='folder.png') }}">
+                                    </figure>
+                                </td>
+                                <td><a href="{{ path }}">{{ fname }}</a></td>
+                                <td class="has-text-centered">/</td>
+                                <td class="has-text-centered">
+                                    <input name="media_to_remove" type="checkbox" value="{{ fname }}">
+                                </td>
+                            </tr>
+
+                            {% else %}
+
+                            <tr>
+                                <!--url_for('main.download_file', uid=uid)-->
+                                <!--url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + get_secure_filename(fname))-->
+                                <td>
+                                    <figure class="image is-32x32"><img
+                                            src="{{ url_for('static', filename='file.png') }}"></figure>
+                                </td>
+                                <td><a target="_blank" href="{{ url_for('main.download_file', uid=uid) }}">{{ fname }}
+                                        <br>[{{file_size}} MB]</a></td>
+                                <td class="has-text-centered">
+                                    {{ url_for('main.download_file', uid=uid, _external=True) }}<br>
+                                    <a href="{{ url_for('main.download_file', uid=uid) }}" class="button is-primary"
+                                        download>Download</a></td>
+                                <td class="has-text-centered"><input name="media_to_remove" type="checkbox"
+                                        value="{{fname}}"></td>
+                                </td>
+                            </tr>
+
+                            {% endif %}
+
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+
+                    <script>
+                        function check(source) {
+                            checkboxes = document.getElementsByName('media_to_remove');
+                            for (var i = 0, n = checkboxes.length; i < n; i++) {
+                                checkboxes[i].checked = source.checked;
+                            }
+                        }
+                    </script>
+                    <input type="hidden" id="ctoken" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" id="remove_path" name="current_path" />
+                    <input id="current_subject" type="hidden" name="current_subject" value="{{ subject }}" />
+                </form>
+        </section>
+    </div>
 
 </div>
+
+<script>
+    $("#current_path").attr('value', window.location.href);
+    $("#file_path").attr('value', window.location.href);
+    $("#remove_path").attr('value', window.location.href);
+    $("#rename_path").attr('value', window.location.href);
+</script>
 
 {% endblock %}

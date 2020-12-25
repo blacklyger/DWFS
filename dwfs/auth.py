@@ -36,7 +36,7 @@ def register_some():
     username = request.form.get('username')
     password = request.form.get('password')
     subject = request.form.get('subject')
-    role = request.form.get('role')
+    role    = request.form.get('selector')
 
     user = User.query.filter_by(username=username).first()
 

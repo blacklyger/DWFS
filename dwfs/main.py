@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, send_file
 from . import db
-from .models import User, Subjects, Media
-from flask_login import current_user, login_required
+from .models import User, Subjects, Media, AccountRequest
+from flask_login import current_user, login_required, AnonymousUserMixin
 from werkzeug.security import generate_password_hash
 from functools import namedtuple
 from os import mkdir, remove, listdir, path
@@ -10,6 +10,8 @@ from random import choice
 from string import digits, ascii_letters
 from shutil import rmtree, move
 from pathlib import Path
+from datetime import datetime
+from urllib.parse import urlparse
 
 main = Blueprint('main', __name__)
 
@@ -22,7 +24,8 @@ ALLOWED_EXTENSIONS = [
     "wav", "doc", "odp", "xls",
     "xlsx", "ppt", "pptm", "ott",
     "ods", "html", "JPG", "jpg",
-    "jpeg", "tex", "opus", "png"
+    "jpeg", "tex", "opus", "png",
+    "mkv"
 ]
 
 def calculate_amount_of_media(subject):
@@ -37,6 +40,122 @@ def index():
     return render_template("index.html")
 
 
+@main.route("/request_account")
+def request_account():
+    return render_template("request_account.html")
+    
+
+def parse_file_path(url, subject):
+    
+    if url == url_for("main.edit_subject", subject=subject, _external=True):
+        return str(Path(abs_path, f"{current_user.username}/{subject}"))
+
+    parsed_url = urlparse(url)
+    return str(Path(abs_path, f"{current_user.username}/{subject}/{'/'.join(parsed_url.path.rsplit('/')[3:])}"))
+
+
+@main.route("/regenerate_uids", methods=["POST"])
+def regenerate_uids():
+
+    uidsplit         = namedtuple("uidsplit", "filename uid")
+    current_subject  = request.form.get("current_subject")
+    current_path     = request.form.get("current_path")
+    parsed_file_path = parse_file_path(current_path, current_subject)
+    user_files       = Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).filter_by(path=parsed_file_path).all()
+    
+    for file in user_files:
+        all_uids = [obj.unique_id for obj in Media.query.all()]
+        new_uid  = ''.join(choice(chars) for i in range(10))
+
+        if new_uid in all_uids:
+            continue
+        
+        splitted       = file.unique_id.split("_")
+        uid_split      = uidsplit(splitted[0], new_uid)
+        file.unique_id = f"{file.filename.split('.')[0]}_{uid_split.uid}"
+        db.session.commit()
+
+    return "true"
+
+@main.route("/req_new_acc", methods=["POST"])
+def req_new_acc():
+    username = request.form.get("username")
+    password = request.form.get("password")
+
+    if not username or not password:
+        flash("Bitt füllen Sie die Felder aus!", 'error')
+        return redirect(url_for("main.request_account"))
+
+    existing_user_request = AccountRequest.query.filter_by(username=username).first()
+    existing_user         = User.query.filter_by(username=username).first()
+
+    if existing_user_request:
+        flash(f"Der Nutzer \"{existing_user_request.username}\" existiert bereits!", 'error')
+        return redirect(url_for("main.request_account"))
+
+    if existing_user:
+        flash(f"Der Nutzer \"{existing_user.username}\" existiert bereits!", 'error')
+        return redirect(url_for("main.request_account"))
+
+    user_request = AccountRequest(
+        username  =username, 
+        password  =password,
+        date      =datetime.now(),
+        ip_address=request.remote_addr
+    )
+
+    db.session.add(user_request)
+    db.session.commit()
+
+    return redirect(url_for("main.request_account"))
+
+
+@main.route("/show_account_requests")
+@login_required
+def show_account_requests():
+
+    if not current_user.is_admin:
+        return redirect(url_for("main.index"))
+
+    requests = AccountRequest.query.all()
+    requests = [
+        (
+            obj.id, 
+            obj.username, 
+            obj.date.strftime("%d.%m.%y %H:%M"), 
+            obj.ip_address
+        ) 
+        
+        for obj in requests
+    ]
+
+    return render_template("show_account_requests.html", requests=requests)
+
+
+@main.route("/create_request_account", methods=["POST"])
+def create_request_account():
+
+    request_split = namedtuple("req_split", "state user")
+    requests      = request.form.getlist("access")
+    
+    for req in requests:
+        to_check = request_split(req.split()[0], req.split()[1])
+        if to_check.state == "yes":
+            match = AccountRequest.query.filter_by(username=to_check.user)
+
+            new_user = User(
+                match.first().username,
+                generate_password_hash(password=match.first().password, method="sha256"),
+                "User"
+            )
+
+            match.delete()
+            db.session.add(new_user)
+            db.session.commit()
+
+    return redirect(url_for("main.show_account_requests"))
+
+
 @main.route("/profile")
 @login_required
 def profile():
@@ -46,7 +165,7 @@ def profile():
 @main.route("/subjects")
 @login_required
 def subjects():
-    _subject = namedtuple("subject", ["media", "access"])
+
     all_subject_names = [sub.subject for sub in Subjects.query.filter_by(name=current_user.username).all()]
     subject_names     = [(subj, len(Media.query.filter_by(subject=subj).filter_by(name=current_user.username).all())) for subj in reversed(all_subject_names)]
 
@@ -59,17 +178,24 @@ def subjects():
     )
 
 
-def calc_file_size(filename, subject):
-    file_path = Path(abs_path, f"{current_user.username}/{subject}/{filename}")
+def calc_file_size(path, filename):
+
+    file_path = Path(path, filename)
     if file_path.exists():
         return f"{file_path.stat().st_size / 1e+6:0.2f}"
 
     return None
 
 
-@main.route("/edit_subject/<subject>")
+@main.route("/edit_subject/<subject>", defaults={"p": None})
+@main.route("/edit_subject/<subject>/<path:p>")
 @login_required
-def edit_subject(subject):
+def edit_subject(subject, p):
+
+    if not p:
+        path = Path(abs_path, f"{current_user.username}/{subject}")
+    else:
+        path = Path(abs_path, f"{current_user.username}/{subject}/{p}")
 
     filtered_subjects = [sub.subject for sub in Subjects.query.filter_by(name=current_user.username).all()]
 
@@ -77,21 +203,45 @@ def edit_subject(subject):
         flash(f"Das Fach \"{subject}\" existiert nicht!", "error")
         return redirect(url_for('main.subjects'))
 
-    d = Media.query.filter_by(name=current_user.username).filter_by(subject=subject).all()
-    data = [(i + 1, f.filename, calc_file_size(f.filename, subject), f.unique_id) for i, f in enumerate(d)]
+    root_data = Media.query.filter_by(
+        name=current_user.username
+    ).filter_by(
+    subject=subject
+    ).filter_by(
+        path=str(path)
+    ).all()
+
+    data = [
+        (
+            i + 1, 
+            f.filename, 
+            calc_file_size(f.path, f.filename),
+            True if f.is_dir() else False,
+            full_path,
+            f.unique_id
+        ) 
+        
+        for i, f in enumerate(root_data)
+        if (full_path := f"{url_for('main.index', _external=True)}edit_subject{f.path.rsplit(f'{str(abs_path)}/{current_user.username}')[1]}/{f.filename}")
+    ]
 
     if not data:
         flash("Es wurden keine Medien gefunden.", 'media_error')
     
-
-    return render_template("edit_subject.html", subject=subject, data=data)
+    return render_template(
+        "edit_subject.html", 
+        subject=subject, 
+        data=data
+    )
 
 
 @login_required
 @main.route("/add_media", methods=['POST'])
 def add_media():
-    files = request.files.getlist('media')
-    current_subject = request.form.get('current_subject')
+    files            = request.files.getlist('media')
+    current_subject  = request.form.get('current_subject')
+    file_path_url    = request.form.get("file_path")
+    parsed_file_path = parse_file_path(file_path_url, current_subject)
 
     if not files or files[0].filename == "":
         flash("Bitte wählen Sie mindestens eine Datei aus.", 'error')
@@ -99,7 +249,7 @@ def add_media():
     
     all_filenames  = [secure_filename(f.filename) for f in files]
 
-    existing_media = [secure_filename(f.filename) for f in Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).all()]
+    existing_media = [secure_filename(f.filename) for f in Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).filter_by(path=parsed_file_path).all()]
     existing_files = [filename         for filename in existing_media if filename in all_filenames]
     all_uids       = [obj.unique_id    for obj      in Media.query.filter_by(name=current_user.username).all()]
 
@@ -116,11 +266,19 @@ def add_media():
         uid = ''.join(choice(chars) for i in range(10))
         if uid in all_uids:
             continue
-        new_media_object = Media(current_user.username, current_subject, filename, f"{filename.rsplit('.')[0]}_{uid}")
+
+        new_media_object = Media(
+            name     =current_user.username, 
+            subject  =current_subject, 
+            filename =filename,
+            path     =parse_file_path(file_path_url, current_subject),
+            category ="file",
+            unique_id=f"{filename.rsplit('.')[0]}_{uid}"
+        )
         db.session.add(new_media_object)
     db.session.commit()
 
-    file_path  = Path(abs_path, f"{current_user.username}/{current_subject}")
+    file_path = Path(parse_file_path(file_path_url, current_subject))
 
     for file in files:
         if file and allowed_file(file.filename):
@@ -130,28 +288,41 @@ def add_media():
 
     flash(f"Folgende Datei/en wurde/n erfolgreich hochgeladen und gespeichert: \"{', '.join(all_filenames)}\"", 'upload_success')
 
-    return redirect(url_for('main.edit_subject', subject=current_subject))
+    return redirect(file_path_url)
 
 @login_required
 @main.route("/remove_media", methods=['POST'])
 def remove_media():
-    to_remove = request.form.getlist('media_to_remove')
-    current_subject = request.form.get('current_subject')
+
+    to_remove        = request.form.getlist('media_to_remove')
+    current_subject  = request.form.get('current_subject')
+    current_path     = request.form.get("current_path")
+    parsed_file_path = parse_file_path(current_path, current_subject)
 
     if not to_remove:
         flash("Bitte wählen Sie mindestens eine Datei aus.", 'error')
         return redirect(url_for('main.edit_subject', subject=current_subject))
 
-    db_media = [f.filename for f in Media.query.filter_by(name=current_user.username).all() if f.filename in to_remove]
-    
+    db_media = [f for f in Media.query.filter_by(name=current_user.username).filter_by(path=parsed_file_path).all() if f.filename in to_remove]
     for media_object in db_media:
-        Media.query.filter_by(filename=media_object).filter_by(name=current_user.username).delete()
+
+        if not media_object.is_dir():
+            Media.query.filter_by(unique_id=media_object.unique_id).delete()
+        else:
+            files_in_folder = [obj for obj in Media.query.filter(Media.path.contains(f"{parsed_file_path}/{media_object.filename}"))]
+            
+            for file_in_folder in files_in_folder:
+                Media.query.filter_by(unique_id=file_in_folder.unique_id).delete()
+
+            Media.query.filter_by(unique_id=media_object.unique_id).delete()
+            
     db.session.commit()
 
-    file_path  = Path(abs_path, f"{current_user.username}/{current_subject}")
-
-    for file in db_media:
-        Path(file_path, file).unlink()
+    for obj in db_media:
+        if obj.category == "file":
+            Path(parsed_file_path, obj.filename).unlink()
+        else:
+            rmtree(Path(parsed_file_path, obj.filename))
 
     flash(f"Folgende Medien wurden erfolgreich gelöscht: \"{', '.join(to_remove)}\"", 'media_success')
 
@@ -165,7 +336,7 @@ def download_file(uid):
     if not filtered_uid:
         return redirect("https://origin7.de")
 
-    file_path = Path(abs_path, f"{filtered_uid.name}/{filtered_uid.subject}/{secure_filename(filtered_uid.filename)}")
+    file_path = Path(filtered_uid.path, secure_filename(filtered_uid.filename))
     return send_file(file_path)
 
 
@@ -264,34 +435,52 @@ def rename_subject():
 
 @main.route("/rename_file", methods=["POST"])
 def rename_file():
-    old_filename    = request.form.get("old_filename")
-    new_filename    = request.form.get("new_filename")
-    current_subject = request.form.get("current_subject")
+    old_filename     = request.form.get("old_filename")
+    new_filename     = request.form.get("new_filename")
+    category         = request.form.get("selector")
+    current_subject  = request.form.get("current_subject")
+    current_path     = request.form.get("rename_path")
+    parsed_file_path = parse_file_path(current_path, current_subject)
 
-    if old_filename.rsplit(".")[1] != new_filename.rsplit(".")[1]:
-        flash("Die Dateiendungen stimmen nicht überein!", 'error')
-        return redirect(url_for("main.edit_subject", subject=current_subject))
-
-    match          = Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).filter_by(filename=old_filename).first()
+    match = Media.query.filter_by(
+        name=current_user.username
+    ).filter_by(
+        subject=current_subject
+    ).filter_by(
+        filename=old_filename
+    ).filter_by(
+        path=parsed_file_path
+    ).first()
 
     if not match:
-        flash(f"Die Datei mit dem Namen \"{old_filename}\" existiert nicht!", 'error')
-        return redirect(url_for("main.edit_subject", subject=current_subject))
+        if category == "Ordner":
+            flash(f"Der Ordner mit dem Namen \"{old_filename}\" existiert nicht!", 'error')
+        else:    
+            flash(f"Die Datei mit dem Namen \"{old_filename}\" existiert nicht!", 'error')
 
-    match.filename = new_filename
+        return redirect(current_path)
+
+
+    if category == "Datei":
+        if old_filename.rsplit(".")[1] != new_filename.rsplit(".")[1]:
+            flash("Die Dateiendungen stimmen nicht überein!", 'error')
+            return redirect(url_for("main.edit_subject", subject=current_subject))
+
+        splitted_uid    = match.unique_id.split("_")
+        match.unique_id = f"{new_filename.split('.')[0]}_{splitted_uid[1]}"
+
+    match.filename  = new_filename
     db.session.commit()
 
     Path(
-        abs_path, 
-        f"{current_user.username}/{current_subject}/{old_filename}"
-    ).rename(
-        Path(
-            abs_path, 
-            f"{current_user.username}/{current_subject}/{new_filename}"
-        )
+        parsed_file_path, 
+        old_filename
+    ).rename(Path(
+        parsed_file_path, 
+        new_filename)
     )
 
-    return redirect(url_for("main.edit_subject", subject=current_subject))
+    return redirect(current_path)
 
 @main.route("/add_subject_dev", methods=['POST'])
 def add_subject_dev():

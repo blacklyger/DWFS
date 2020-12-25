@@ -31,8 +31,16 @@
                         </div>
                     </div>
 
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <div class="field">
+                        <div class="select">
+                            <select name="selector">
+                            <option>User</option>
+                            <option>Admin</option>
+                            </select>
+                        </div>
+                    </div>
 
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <button class="button is-block is-info is-large is-fullwidth">Registrieren</button>
                 </form>
             </div>

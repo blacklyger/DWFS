@@ -39,6 +39,9 @@ app.register_blueprint(auth_blueprint)
 from .main import main as main_blueprint
 app.register_blueprint(main_blueprint)
 
+from .folder import folder as folder_blueprint
+app.register_blueprint(folder_blueprint)
+
 @app.context_processor
 def secure_fname():
     def get_secure_filename(fname):
