@@ -42,6 +42,9 @@ app.register_blueprint(main_blueprint)
 from .folder import folder as folder_blueprint
 app.register_blueprint(folder_blueprint)
 
+from .share import share as share_blueprint
+app.register_blueprint(share_blueprint)
+
 @app.context_processor
 def secure_fname():
     def get_secure_filename(fname):

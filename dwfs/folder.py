@@ -49,7 +49,8 @@ def add_folder():
         folder_name,
         parsed_file_path,
         "folder",
-        generated_uid
+        generated_uid,
+        "/"
     )
     db.session.add(new_object)
     db.session.commit()

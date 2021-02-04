@@ -144,7 +144,7 @@
 
     <div class="column is-fullwidth">
         <section class="section">
-            <p class="title has-text-centered">Medien hinzufügen</p>
+            <p class="title has-text-centered has-text-white">Medien hinzufügen</p>
             <div class="box has-text-centered">
 
                 {% with messages = get_flashed_messages(category_filter=['upload_success']) %}
@@ -219,6 +219,7 @@
                                 <th class="has-text-centered"><abbr title="Typ">Typ</abbr></th>
                                 <th class="has-text-centered"><abbr title="Filename">Name</abbr></th>
                                 <th class="has-text-centered"><abbr title="Copy">Download / Teilen</abbr></th>
+                                <th class="has-text-centered"><abbr title="Foreign_Access">Fremdzugang</abbr></th>
                                 <th class="has-text-centered">
                                     <abbr title="Remove">Alle <input type="checkbox" onclick="check(this)"></abbr>
                                 </th>
@@ -232,12 +233,23 @@
 
                             <tr>
                                 <td>
-                                    <figure class="image is-32x32"><img
-                                            src="{{ url_for('static', filename='folder.png') }}">
+                                    <figure class="image is-32x32">
+                                        <img src="{{ url_for('static', filename='folder.png') }}">
                                     </figure>
                                 </td>
                                 <td><a href="{{ path }}">{{ fname }}</a></td>
-                                <td class="has-text-centered">/</td>
+                                <td class="has-text-centered">
+                                    {{ url_for('share.share_folder', username=current_user.username, subject=subject,
+                                    folder_name=fname, folder_uid=uid, _external=True) }}
+                                </td>
+                                <td class="has-text-centered">
+                                    <div class="select">
+                                        <select id="foreign_access_select" name="selector" onchange="foreign_access_request(this.value, '{{ uid }}')">
+                                            <option>Nein</option>
+                                            <option>Ja</option>
+                                        </select>
+                                    </div>
+                                </td>
                                 <td class="has-text-centered">
                                     <input name="media_to_remove" type="checkbox" value="{{ fname }}">
                                 </td>
@@ -257,7 +269,9 @@
                                 <td class="has-text-centered">
                                     {{ url_for('main.download_file', uid=uid, _external=True) }}<br>
                                     <a href="{{ url_for('main.download_file', uid=uid) }}" class="button is-primary"
-                                        download>Download</a></td>
+                                        download>Download</a>
+                                </td>
+                                <td class="has-text-centered">/</td>
                                 <td class="has-text-centered"><input name="media_to_remove" type="checkbox"
                                         value="{{fname}}"></td>
                                 </td>
@@ -269,15 +283,6 @@
                         </tbody>
 
                     </table>
-
-                    <script>
-                        function check(source) {
-                            checkboxes = document.getElementsByName('media_to_remove');
-                            for (var i = 0, n = checkboxes.length; i < n; i++) {
-                                checkboxes[i].checked = source.checked;
-                            }
-                        }
-                    </script>
                     <input type="hidden" id="ctoken" name="csrf_token" value="{{ csrf_token() }}" />
                     <input type="hidden" id="remove_path" name="current_path" />
                     <input id="current_subject" type="hidden" name="current_subject" value="{{ subject }}" />
@@ -293,5 +298,11 @@
     $("#remove_path").attr('value', window.location.href);
     $("#rename_path").attr('value', window.location.href);
 </script>
+
+<style>
+    html {
+        background: linear-gradient(to right, #159957, #155799);
+    }
+</style>
 
 {% endblock %}

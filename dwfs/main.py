@@ -12,11 +12,14 @@ from shutil import rmtree, move
 from pathlib import Path
 from datetime import datetime
 from urllib.parse import urlparse
+from .share import share
 
 main = Blueprint('main', __name__)
 
-abs_path = Path("/home/simon/projects/DWFS/dwfs/data")
+abs_path = Path("D:\\XTEC\\computer_science\\software\\DWFS\\dwfs\\data")
 chars = digits + ascii_letters
+
+nx = "\\"
 
 ALLOWED_EXTENSIONS = [
     "txt", "pdf", "zip", "tar",
@@ -62,17 +65,30 @@ def regenerate_uids():
     current_path     = request.form.get("current_path")
     parsed_file_path = parse_file_path(current_path, current_subject)
     user_files       = Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).filter_by(path=parsed_file_path).all()
-    
+  
     for file in user_files:
+        files_in_folder = []
         all_uids = [obj.unique_id for obj in Media.query.all()]
         new_uid  = ''.join(choice(chars) for i in range(10))
 
         if new_uid in all_uids:
             continue
-        
-        splitted       = file.unique_id.split("_")
-        uid_split      = uidsplit(splitted[0], new_uid)
-        file.unique_id = f"{file.filename.split('.')[0]}_{uid_split.uid}"
+
+        if file.is_dir():
+            files_in_folder = [file for file in Media.query.filter_by(in_folder=file.unique_id).all()]
+
+        if not file.is_dir():
+            splitted       = file.unique_id.split("_")
+            uid_split      = uidsplit(splitted[0], new_uid)
+            file.unique_id = f"{file.filename.split('.')[0]}_{uid_split.uid}"
+        else:
+            file.unique_id = new_uid
+
+        db.session.commit()
+
+        for file_in_folder in files_in_folder:
+            file_in_folder.in_folder = new_uid
+
         db.session.commit()
 
     return "true"
@@ -222,7 +238,8 @@ def edit_subject(subject, p):
         ) 
         
         for i, f in enumerate(root_data)
-        if (full_path := f"{url_for('main.index', _external=True)}edit_subject{f.path.rsplit(f'{str(abs_path)}/{current_user.username}')[1]}/{f.filename}")
+        #if (full_path := f"{url_for('main.index', _external=True)}edit_subject{f.path.rsplit(f'{str(abs_path)}/{current_user.username}')[0]}/{f.filename}") # LINUX
+        if (full_path := f"{url_for('main.index', _external=True)}edit_subject{f.path.rsplit(f'{str(abs_path)}{nx}{current_user.username}')[1]}/{f.filename}") # WINDOWS
     ]
 
     if not data:
@@ -235,6 +252,42 @@ def edit_subject(subject, p):
     )
 
 
+def get_folder_uid(subject, parsed_file_path):
+
+    """
+    Determine the folder_uid of the folder where an uploaded file is in.
+    """
+
+    # REWRITE THIS SOON PLEASE
+
+    if Path(parsed_file_path) == Path(abs_path, f"{current_user.username}{nx}{subject}"):
+       return "root"
+
+    current_path      = f"{current_user.username}{nx}{subject}"
+    current_full_path = f"{str(Path(abs_path, current_path))}{nx}"
+    current           = parsed_file_path.split(current_full_path)
+
+    if not len(current) > 1:
+        return
+
+    current_folder = current[1]
+
+    if nx in current_folder:
+        current_folder      = current_folder.split(nx)
+        current_folder_name = current_folder[len(current_folder) - 1]
+        to_match            = current_folder[0 : len(current_folder) - 1]
+
+        cfullpath           = f"{str(Path(abs_path, current_path))}"
+        path_to_filter      = f"{cfullpath}{nx}{f'{nx}'.join(to_match)}"
+    else:
+        path_to_filter      = f"{str(Path(abs_path, current_path))}"
+        current_folder_name = current_folder
+        
+    folder_uid = Media.query.filter_by(name=current_user.username, subject=subject, filename=current_folder_name, path=path_to_filter, category="folder").first()
+
+    return folder_uid.unique_id
+
+
 @login_required
 @main.route("/add_media", methods=['POST'])
 def add_media():
@@ -242,6 +295,7 @@ def add_media():
     current_subject  = request.form.get('current_subject')
     file_path_url    = request.form.get("file_path")
     parsed_file_path = parse_file_path(file_path_url, current_subject)
+    folder_uid       = get_folder_uid(current_subject, parsed_file_path)
 
     if not files or files[0].filename == "":
         flash("Bitte wählen Sie mindestens eine Datei aus.", 'error')
@@ -271,9 +325,11 @@ def add_media():
             name     =current_user.username, 
             subject  =current_subject, 
             filename =filename,
-            path     =parse_file_path(file_path_url, current_subject),
+            path     =parsed_file_path,
             category ="file",
-            unique_id=f"{filename.rsplit('.')[0]}_{uid}"
+            unique_id=f"{filename.rsplit('.', 1)[0]}_{uid}",
+            in_folder=folder_uid,
+            faccess=True
         )
         db.session.add(new_media_object)
     db.session.commit()
@@ -309,7 +365,8 @@ def remove_media():
         if not media_object.is_dir():
             Media.query.filter_by(unique_id=media_object.unique_id).delete()
         else:
-            files_in_folder = [obj for obj in Media.query.filter(Media.path.contains(f"{parsed_file_path}/{media_object.filename}"))]
+            files_in_folder = [obj for obj in Media.query.filter(Media.path.contains(f"{parsed_file_path}{nx}{media_object.filename}"))] # WINDOWS
+            #files_in_folder = [obj for obj in Media.query.filter(Media.path.contains(f"{parsed_file_path}/{media_object.filename}"))] # LINUX
             
             for file_in_folder in files_in_folder:
                 Media.query.filter_by(unique_id=file_in_folder.unique_id).delete()

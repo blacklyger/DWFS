@@ -2,19 +2,43 @@
 
 {% block content %}
 
+<div class="columns">
+    <div class="column is-one-third is-offset-2">
+        <section class="section">
+            <div class="content">
+                <p style="font-size: 150px; color: white; font-family: 'Anton'; padding-top: 200px;">DWFS</p>
+            </div>
+            <div class="content">
+                <p style="font-size: 50px; color: white; font-family: 'Staatliches';">Universal Filesharing System</p>
+            </div>
+        </section>
+    </div>
+    <div class="column is-half is-3 is-offset-1">
+        <section class="section" style="padding-top: 150px;">
+            <figure class="image is-1by1">
+                <img src="{{ url_for('static', filename='fpage.png') }}"/>
+            </figure>
+        </section>
+    </div>
+</div>
+
+<!--
 <section class="hero is-medium is-primary is-bold">
     <div class="hero-body">
         <div class="container">
-            <h1 class="title">
-                DWFS
+            <h1 class="title" style="font-size: 70px;">
+               <b>DWFS</b>
             </h1>
-            <h2 class="subtitle">
-                DWFS - Ein besseres Filesharing und Filehosting System als IServ
+            <h2 class="subtitle" style="font-size: 30px;">
+                Universal Filesharing System
             </h2>
         </div>
     </div>
 </section>
 
+-->
+
+<!--
 <div class="tabs is-centered">
     <ul>
         <li id="about" onclick="do_it(this)" class="is-active"><a>Über DWFS</a></li>
@@ -22,7 +46,8 @@
         <li id="pre" onclick="do_it(this)"><a>Vorschau</a></li>
     </ul>
 </div>
-
+-->
+<!--
 <div class="columns has-background-dark">
     <div id="about_column" class="column is-fullwidth is-6 is-offset-2">
         <section class="section">
@@ -88,19 +113,141 @@
     </div>
 </div>
 
+-->
+
+<!--
+<div class="columns">
+    <div class="column is-one-quarter">
+        <section class="section">
+            <div class="card">
+                <div class="card-image">
+                  <figure class="image is-4by3">
+                    <img src="{{ url_for('static', filename='avatar.jpg') }}" alt="Placeholder image">
+                  </figure>
+                </div>
+                <div class="card-content">
+                  <div class="media">
+                    <div class="media-content">
+                      <p class="title is-4">BlackLyger</p>
+                      <p class="subtitle is-6"><a href="https://blacklyger.com" target="_blank">@blacklyger</a> | <a href="https://github.com/blacklyger" target="_blank">GitHub</a></p>
+                    </div>
+                  </div>
+              
+                  <div class="content">
+                    BlackLyger ist der Initiator und Entwickler der Filesharing Plattform DWFS.
+                    <br><br>
+                    <a href="mailto:dwfs@origin7.de">dwfs@origin7.de</a> | © DWFS 2021
+                  </div>
+                </div>
+              </div>
+        </section>
+    </div>
+    <div class="column is-one-third">
+        <section class="section">
+
+            <section class="section has-background-white">
+                <article class="media">
+                    <figure class="media-left">
+                      <p class="image is-64x64">
+                        <img src="{{ url_for('static', filename='avatar.jpg') }}">
+                      </p>
+                    </figure>
+                    <div class="media-content">
+                      <div class="content">
+                        <p>
+                          <strong>BlackLyger [Autor]</strong>
+                          <br><br>
+                          DWFS ist ein sehr simples, benutzerfreundliches und schnelles Filesharing System. Die Anzahl der Funktionen und Features
+                          ist überschaubar, das erleichtert die schnelle Bedienung der Anwendung erheblich. Aufgrund dieser Eigenschaften empfehle
+                          ich die Plattform allen, die ihre Daten sicher und von überall aus speichern, herunterladen und teilen möchten.
+                        </p>
+                      </div>
+                      <nav class="level is-mobile">
+                        <div class="level-left">
+                          <a class="level-item">
+                            <span class="icon is-small"><i class="fas fa-reply"></i></span>
+                          </a>
+                          <a class="level-item">
+                            <span class="icon is-small"><i class="fas fa-retweet"></i></span>
+                          </a>
+                          <a class="level-item">
+                            <span class="icon is-small"><i class="fas fa-heart"></i></span>
+                          </a>
+                        </div>
+                      </nav>
+                    </div>
+                  </article>
+            </section>
+
+            <br>
+
+            <section class="section has-background-white">
+                <article class="media">
+                    <figure class="media-left">
+                      <p class="image is-64x64">
+                        <img src="{{ url_for('static', filename='avatar.jpg') }}">
+                      </p>
+                    </figure>
+                    <div class="media-content">
+                      <div class="content">
+                        <p>
+                          <strong>[Hier könnte ihr Name stehen ...]</strong>
+                          <br><br>
+                          Sie können sich bei Interesse gerne an DWFS wenden, um ihre Meinung und Bewertung zur Anwendung abzugeben.
+                          Der Schutz ihrer Privatsphäre steht dabei an erster Stelle!
+                        </p>
+                      </div>
+                      <nav class="level is-mobile">
+                        <div class="level-left">
+                          <a class="level-item">
+                            <span class="icon is-small"><i class="fas fa-reply"></i></span>
+                          </a>
+                          <a class="level-item">
+                            <span class="icon is-small"><i class="fas fa-retweet"></i></span>
+                          </a>
+                          <a class="level-item">
+                            <span class="icon is-small"><i class="fas fa-heart"></i></span>
+                          </a>
+                        </div>
+                      </nav>
+                    </div>
+                  </article>
+            </section>
+
+        </section>
+    </div>
+    <div class="column is-one-third">
+        <section class="section">
+            <h1 class="title has-text-white has-text-centered" style="font-size: 50px;"><b>DWFS</b></h1>
+            <div class="content has-text-white">
+                <p style="font-size: 20px;">DWFS ist eine universelle Filesharing Plattform mit Fokus auf Sicherheit, Simplizität, Benutzerfreundlichkeit und Performance.
+                Durch die simple Bedienung und eine komprimierte Reihe an Funktionen und Features ist das System permanent auf seine Hauptaufgabe konzentriert.</p>
+            </div>
+        </section>
+    </div>
+</div>
+
+-->
+
+<style>
+  html {
+    background: linear-gradient(to right, #159957, #155799);
+  }
+</style>
+
 <script>
-    all = ['about', 'hiw', 'pre'];
-    all_columns = ['about_column', 'hiw_column', 'pre_column'];
+  all = ['about', 'hiw', 'pre'];
+  all_columns = ['about_column', 'hiw_column', 'pre_column'];
 
-    for (i = 0; i < all.length; i++) {
-        element = document.getElementById(all[i]);
+  for (i = 0; i < all.length; i++) {
+    element = document.getElementById(all[i]);
 
-        if (element.classList == 0) {
-            full_name = element.id + "_column";
-            ele = document.getElementById(full_name);
-            ele.style.display = "none";
-        }
+    if (element.classList == 0) {
+      full_name = element.id + "_column";
+      ele = document.getElementById(full_name);
+      ele.style.display = "none";
     }
+  }
 </script>
 
 

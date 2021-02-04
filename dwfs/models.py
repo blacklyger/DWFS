@@ -22,24 +22,35 @@ class User(UserMixin, db.Model):
 
 class Media(UserMixin, db.Model):
     
-    id           = db.Column(db.Integer, primary_key=True)
-    name         = db.Column(db.String(100))
-    subject      = db.Column(db.String(100))
-    filename     = db.Column(db.String(100))
-    path         = db.Column(db.String(200))
-    category     = db.Column(db.String(10))
-    unique_id    = db.Column(db.String(10), unique=True)
+    id        = db.Column(db.Integer, primary_key=True)
+    name      = db.Column(db.String(100))
+    subject   = db.Column(db.String(100))
+    filename  = db.Column(db.String(100))
+    path      = db.Column(db.String(200))
+    category  = db.Column(db.String(10))
+    unique_id = db.Column(db.String(10), unique=True)
+    in_folder = db.Column(db.String(10))
+    faccess   = db.Column(db.Boolean, default=False)
 
-    def __init__(self, name, subject, filename, path, category, unique_id):
-        self.name         = name
-        self.subject      = subject
-        self.filename     = filename
-        self.path         = path
-        self.category     = category
-        self.unique_id    = unique_id
+    def __init__(self, name, subject, filename, path, category, unique_id, in_folder, faccess = False):
+        self.name      = name
+        self.subject   = subject
+        self.filename  = filename
+        self.path      = path
+        self.category  = category
+        self.unique_id = unique_id
+        self.in_folder = in_folder
+        self.faccess   = faccess
 
     def is_dir(self):
         return True if self.category == "folder" else False
+
+    def set_foreign_access(self, value: bool):
+        self.faccess = value
+        db.session.commit()
+
+    def has_foreign_access(self):
+        return True if self.faccess else False
 
 
 class Subjects(UserMixin, db.Model):

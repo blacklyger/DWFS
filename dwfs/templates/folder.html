@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!--
+<section class="hero is-medium is-primary is-bold">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+        Inhalte des Ordners "{{ folder_name }}"
+        </h1>
+        <h2 class="subtitle">
+          Kennzeichnung: {{ folder_uid }}
+        </h2>
+      </div>
+    </div>
+</section>
+-->
+
+<div class="columns">
+    <div class="column is-fullwidth">
+        <section class="section">
+            <h1 class="title has-text-centered has-text-white" style="font-family: Staatliches; font-size: 70px;">
+                {{username}} shared a folder:</h1>
+            <h1 class="title has-text-centered has-text-white" style="font-family: Staatliches; font-size: 50px;">{{
+                folder_name }}</h1>
+        </section>
+    </div>
+</div>
+
+{% if faccess %}
+
+<div class="columns">
+    <div class="column is-one-third is-offset-4">
+        <p class="title has-text-centered has-text-white">Medien hinzufügen</p>
+        <div class="box has-text-centered">
+
+            {% with messages = get_flashed_messages(category_filter=['upload_success', 'upload_error']) %}
+            {% if messages %}
+            {% if messages[0].startswith('Folgende Datei/en wurde/n erfolgreich') %}
+            <div class="notification is-success has-text-centered">
+                {{ messages[0] }}
+            </div>
+            {% elif messages[0].startswith('Please choose at least one file.') %}
+            <div class="notification is-danger has-text-centered">
+                {{ messages[0] }}
+            </div>
+            {% elif messages[0].startswith('The file/s already exist/s') %}
+            <div class="notification is-danger has-text-centered">
+                {{ messages[0] }}
+            </div>
+            {% elif messages[0].startswith('The file extension') %}
+            <div class="notification is-danger has-text-centered">
+                {{ messages[0] }}
+            </div>
+            {% endif %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/add_shared_files" enctype="multipart/form-data">
+                <div class="content">
+                    <div class="field">
+                        <div class="control">
+                            <div class="file is-large is-centered">
+                                <label class="file-label">
+                                    <input class="file-input" id="fileupload" onchange="get_all_files()" type="file"
+                                        name="media_to_add" multiple>
+                                    <span class="file-cta">
+                                        <i class="fas fa-upload"></i>
+                                        <span class="file-label">
+                                            Datei/en auswählen
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content">
+                        <table id="filetable" class="table is-bordered"></table>
+                    </div>
+                </div>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" name="path" id="add_path" />
+                <input type="hidden" name="folder_uid" value="{{ folder_uid }}" />
+                <input type="hidden" name="folder_name" value="{{ folder_name }}" />
+                <input type="hidden" name="username" value="{{ username }}" />
+                <input type="hidden" name="subject" value="{{ subject }}" />
+                <button class="button is-block is-info is-large is-fullwidth">Hinzufügen</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+<div class="columns">
+    <div class="column">
+        <section class="section">
+
+            <div class="box">
+
+                <form method="POST" action="/remove_shared_files">
+
+                    {% if faccess %}
+                    <div class="content has-text-centered">
+                        <button class="button is-danger">Remove</button>
+                    </div>
+                    {% endif %}
+
+                    {% with messages = get_flashed_messages(category_filter=['upload_success']) %}
+                    {% if messages %}
+                    {% if messages[0].startswith('Removed files') %}
+                    <div class="notification is-info has-text-centered">
+                        {{ messages[0] }}
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    {% endwith %}
+
+                    <table class="table is-bordered is-fullwidth">
+
+                        <thead>
+                            <tr>
+                                <th class="has-text-centered"><abbr title="Type">Type</abbr></th>
+                                <th class="has-text-centered"><abbr title="Name">Filename</abbr></th>
+                                <th class="has-text-centered"><abbr title="Share">Download</abbr></th>
+                                <th class="has-text-centered">
+                                    <abbr title="Remove">All <input type="checkbox" onclick="check(this)"></abbr>
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for file in files %}
+
+                            <tr>
+                                <td>
+                                    <figure class="image is-32x32">
+                                        <img src="{{ url_for('static', filename='file.png') }}">
+                                    </figure>
+                                </td>
+                                <td><a target="_blank" href="{{ url_for('main.download_file', uid=file.unique_id) }}">{{
+                                        file.filename }}</a></td>
+                                <td class="has-text-centered">
+                                    {{ url_for('main.download_file', uid=file.unique_id, _external=True) }}<br>
+                                    <a href="{{ url_for('main.download_file', uid=file.unique_id) }}"
+                                        class="button is-primary" download>Download</a>
+                                </td>
+                                <td class="has-text-centered">
+                                    <input type="checkbox" name="media_to_remove" value="{{file.unique_id}}">
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+                    <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+                    <input type="hidden" name="path" id="remove_path">
+                </form>
+            </div>
+
+        </section>
+    </div>
+</div>
+
+<script>
+    $("#add_path").attr('value', window.location.href);
+    $("#remove_path").attr('value', window.location.href);
+</script>
+
+<style>
+    html {
+        background: linear-gradient(to right, #159957, #155799);
+    }
+</style>
+
+{% endblock %}

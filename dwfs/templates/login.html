@@ -2,27 +2,13 @@
 
 {% block content %}
 
-<section class="hero is-medium is-primary is-bold">
+<section class="hero is-fullheight">
     <div class="hero-body">
-        <div class="container">
-            <h1 class="title">
-                Anmelden
-            </h1>
-            <h2 class="subtitle">
-                Bitte melden Sie sich zuerst an um alle Funktionen nutzen zu können
-            </h2>
-        </div>
-    </div>
-</section>
-
-<div class="columns has-background-dark">
-    <div class="container has-text-centered">
-        <div class="column is-half is-offset-one-quarter">
+        <div class="container has-text-centered">
             <section class="section">
-                <br>
                 <p class="title has-text-white">Anmelden</p>
-                <div class="box">
 
+                <div class="box">
                     {% with messages = get_flashed_messages() %}
                     {% if messages %}
                     <div class="notification is-danger">
@@ -49,10 +35,16 @@
                         <button class="button is-block is-info is-large is-fullwidth">Anmelden</button>
                     </form>
                 </div>
-
             </section>
-        </div><br><br><br><br>
+        </div>
     </div>
-</div>
+
+</section>
+
+<style>
+    html {
+        background: linear-gradient(to right, #159957, #155799);
+    }
+</style>
 
 {% endblock %}

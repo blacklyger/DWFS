@@ -2,20 +2,6 @@
 
 {% block content %}
 
-
-<section class="hero is-medium is-primary is-bold">
-    <div class="hero-body">
-        <div class="container">
-            <h1 class="title">
-                Registrieren
-            </h1>
-            <h2 class="subtitle">
-                Hier können Sie sich registrieren
-            </h2>
-        </div>
-    </div>
-</section>
-
 {% with messages = get_flashed_messages(category_filter=['error', 'success']) %}
 {% if messages %}
 <div class="notification is-danger has-text-centered">
@@ -24,28 +10,47 @@
 {% endif %}
 {% endwith %}
 
-<div class="columns">
-    <div class="container has-text-centered">
-        <div class="column is-half is-offset-one-quarter">
+<section class="hero is-fullheight">
+    <div class="hero-body">
+        <div class="container has-text-centered">
             <section class="section">
-                <form method="POST" action="/req_new_acc">
-                    <div class="field">
-                        <div class="control">
-                            <input name="username" class="input is-large" type="text" placeholder="Nutzername">
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="control">
-                            <input name="password" class="input is-large" type="password" placeholder="Passwort">
-                        </div>
-                    </div>
+                <p class="title has-text-white">Registrieren</p>
 
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <button class="button is-block is-info is-large is-fullwidth">Senden</button>
-                </form>
+                <div class="box">
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <div class="notification is-danger">
+                        {{ messages[0] }}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="/req_new_acc">
+                        <div class="field">
+                            <div class="control">
+                                <input name="username" class="input is-large" type="text" placeholder="Nutzername">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="control">
+                                <input name="password" class="input is-large" type="password" placeholder="Passwort">
+                            </div>
+                        </div>
+    
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button class="button is-block is-info is-large is-fullwidth">Senden</button>
+                    </form>
+                </div>
             </section>
-        </div><br>
+        </div>
     </div>
-</div>
+
+</section>
+
+<style>
+    html {
+        background: linear-gradient(to right, #159957, #155799);
+    }
+</style>
 
 {% endblock %}

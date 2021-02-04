@@ -59,32 +59,38 @@ function get_all_files() {
     $('#filetable').html(file_data);
 }
 
+function check(source) {
+    checkboxes = document.getElementsByName('media_to_remove');
+    for (var i = 0, n = checkboxes.length; i < n; i++) {
+        checkboxes[i].checked = source.checked;
+    }
+}
 
 function copy_link(it) {
-    
+
     var el = document.createElement('input');
     el.value = it.innerHTML;
     el.setAttribute('hidden', '');
-    el.style = {position: 'absolute', left: '-9999px'};
+    el.style = { position: 'absolute', left: '-9999px' };
     document.body.appendChild(el);
     el.select();
     document.execCommand('copy');
 }
 
 
-$(function() {
+$(function () {
 
     var ctoken = $("#ctoken").val();
 
     $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
+        beforeSend: function (xhr, settings) {
             if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
                 xhr.setRequestHeader("X-CSRFToken", ctoken)
             }
         }
     })
 
-    $("a#regenerate_button").on('click', function(e) {
+    $("a#regenerate_button").on('click', function (e) {
         $.ajax({
             method: "POST",
             url: "/regenerate_uids",
@@ -92,7 +98,7 @@ $(function() {
                 current_subject: $("#current_subject").val(),
                 current_path: window.location.href
             }
-        }).done(function(data) {
+        }).done(function (data) {
             if (data == "true") {
                 location.reload();
             }
@@ -100,3 +106,14 @@ $(function() {
         e.preventDefault();
     });
 });
+
+function foreign_access_request(value, folder_uid) {
+    $.ajax({
+        method: "POST",
+        url: "/foreign_access",
+        data: {
+            value: value,
+            folder_uid: folder_uid
+        }
+    });
+}
