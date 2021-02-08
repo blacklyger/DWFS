@@ -113,6 +113,9 @@ def foreign_access():
     if not folder:
         return ""
 
+    if (value == "Ja" and folder.has_foreign_access()) or (value == "Nein" and not folder.has_foreign_access()):
+        return ""
+
     if value == "Ja":
         folder.set_foreign_access(True)
         return "Foreign access: true"

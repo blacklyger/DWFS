@@ -243,12 +243,16 @@
                                     folder_name=fname, folder_uid=uid, _external=True) }}
                                 </td>
                                 <td class="has-text-centered">
+                                    <!--
                                     <div class="select">
                                         <select id="foreign_access_select" name="selector" onchange="foreign_access_request(this.value, '{{ uid }}')">
                                             <option>Nein</option>
                                             <option>Ja</option>
                                         </select>
                                     </div>
+                                    -->
+                                    <a class="button is-primary" onclick="foreign_access_request('Ja', '{{ uid }}')">Ja</a>
+                                    <a class="button is-danger" onclick="foreign_access_request('Nein', '{{uid}}')">Nein</a>
                                 </td>
                                 <td class="has-text-centered">
                                     <input name="media_to_remove" type="checkbox" value="{{ fname }}">
