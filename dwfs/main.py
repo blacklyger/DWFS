@@ -391,7 +391,7 @@ def download_file(uid):
     filtered_uid = Media.query.filter_by(unique_id=uid).first()
 
     if not filtered_uid:
-        return redirect("https://origin7.de")
+        return redirect(url_for("main.index"))
 
     file_path = Path(filtered_uid.path, secure_filename(filtered_uid.filename))
     return send_file(file_path)

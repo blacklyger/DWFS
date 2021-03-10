@@ -2,21 +2,6 @@
 
 {% block content %}
 
-<!--
-<section class="hero is-medium is-primary is-bold">
-    <div class="hero-body">
-      <div class="container">
-        <h1 class="title">
-        Inhalte des Ordners "{{ folder_name }}"
-        </h1>
-        <h2 class="subtitle">
-          Kennzeichnung: {{ folder_uid }}
-        </h2>
-      </div>
-    </div>
-</section>
--->
-
 <div class="columns">
     <div class="column is-fullwidth">
         <section class="section">
@@ -99,9 +84,9 @@
 
             <div class="box">
 
+                {% if faccess %}
                 <form method="POST" action="/remove_shared_files">
 
-                    {% if faccess %}
                     <div class="content has-text-centered">
                         <button class="button is-danger">Remove</button>
                     </div>
@@ -159,9 +144,10 @@
                     </table>
                     <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
                     <input type="hidden" name="path" id="remove_path">
+                    {% if faccess %}
                 </form>
+                    {% endif %}
             </div>
-
         </section>
     </div>
 </div>
