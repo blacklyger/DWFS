@@ -63,10 +63,13 @@ def regenerate_uids():
     uidsplit         = namedtuple("uidsplit", "filename uid")
     current_subject  = request.form.get("current_subject")
     current_path     = request.form.get("current_path")
+    to_change        = request.form.getlist('change[]')
     parsed_file_path = parse_file_path(current_path, current_subject)
-    user_files       = Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).filter_by(path=parsed_file_path).all()
   
-    for file in user_files:
+    for file in to_change:
+
+        media_obj = Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).filter_by(path=parsed_file_path).filter_by(filename=file).first()
+
         files_in_folder = []
         all_uids = [obj.unique_id for obj in Media.query.all()]
         new_uid  = ''.join(choice(chars) for i in range(10))
@@ -74,20 +77,19 @@ def regenerate_uids():
         if new_uid in all_uids:
             continue
 
-        if file.is_dir():
-            files_in_folder = [file for file in Media.query.filter_by(in_folder=file.unique_id).all()]
-
-        if not file.is_dir():
-            splitted       = file.unique_id.split("_")
-            uid_split      = uidsplit(splitted[0], new_uid)
-            file.unique_id = f"{file.filename.split('.')[0]}_{uid_split.uid}"
+        if media_obj.is_dir():
+            files_in_folder     = [file for file in Media.query.filter_by(in_folder=media_obj.unique_id).all()]
+            media_obj.unique_id = new_uid
         else:
-            file.unique_id = new_uid
+            splitted            = media_obj.unique_id.split("_")
+            uid_split           = uidsplit(splitted[0], new_uid)
+            media_obj.unique_id = f"{media_obj.filename.split('.')[0]}_{uid_split.uid}"
 
         db.session.commit()
 
         for file_in_folder in files_in_folder:
-            file_in_folder.in_folder = new_uid
+            if not file_in_folder.is_dir():
+                file_in_folder.in_folder = new_uid
 
         db.session.commit()
 

@@ -91,12 +91,23 @@ $(function () {
     })
 
     $("a#regenerate_button").on('click', function (e) {
+
+        checkBoxes = document.getElementsByName('media_to_remove');
+        to_change  = [];
+
+        for (i = 0; i < checkBoxes.length; i++) {
+            if (checkBoxes[i].checked) {
+                to_change.push(checkBoxes[i].value);
+            }
+        }
+
         $.ajax({
             method: "POST",
             url: "/regenerate_uids",
             data: {
                 current_subject: $("#current_subject").val(),
-                current_path: window.location.href
+                current_path: window.location.href,
+                change: to_change
             }
         }).done(function (data) {
             if (data == "true") {
