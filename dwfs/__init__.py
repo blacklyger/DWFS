@@ -45,6 +45,9 @@ app.register_blueprint(folder_blueprint)
 from .share import share as share_blueprint
 app.register_blueprint(share_blueprint)
 
+from .search import search as search_blueprint
+app.register_blueprint(search_blueprint)
+
 @app.context_processor
 def secure_fname():
     def get_secure_filename(fname):

@@ -1,3 +1,5 @@
+from operator import add
+from urllib import parse
 from flask import Blueprint, render_template, redirect, url_for, request, flash, send_file
 from . import db
 from .models import User, Subjects, Media, AccountRequest
@@ -188,7 +190,7 @@ def subjects():
     subject_names     = [(subj, len(Media.query.filter_by(subject=subj).filter_by(name=current_user.username).all())) for subj in reversed(all_subject_names)]
 
     if not all_subject_names:
-        flash("Keine Fächer gefunden!", 'error')
+        flash("Keine Fächer gefunden.", 'error')
 
     return render_template(
         "subjects.html",
@@ -203,6 +205,14 @@ def calc_file_size(path, filename):
         return f"{file_path.stat().st_size / 1e+6:0.2f}"
 
     return None
+
+
+def create_url_from_media_path(media_path: str, filename: str) -> str:
+
+    raw_path = f"{media_path.rsplit(f'{abs_path}{nx}{current_user.username}')[1]}/{filename}"
+    url_path = f"{url_for('main.index', _external=True)}edit_subject{raw_path}".replace("\\", "/")
+
+    return url_path
 
 
 @main.route("/edit_subject/<subject>", defaults={"p": None})
@@ -235,13 +245,13 @@ def edit_subject(subject, p):
             f.filename, 
             calc_file_size(f.path, f.filename),
             True if f.is_dir() else False,
-            full_path,
+            create_url_from_media_path(f.path, f.filename),
             f.unique_id
         ) 
         
         for i, f in enumerate(root_data)
         #if (full_path := f"{url_for('main.index', _external=True)}edit_subject{f.path.rsplit(f'{str(abs_path)}/{current_user.username}')[0]}/{f.filename}") # LINUX
-        if (full_path := f"{url_for('main.index', _external=True)}edit_subject{f.path.rsplit(f'{str(abs_path)}{nx}{current_user.username}')[1]}/{f.filename}") # WINDOWS
+        #if (full_path := f"{url_for('main.index', _external=True)}edit_subject{f.path.rsplit(f'{str(abs_path)}{nx}{current_user.username}')[1]}/{f.filename}") # WINDOWS
     ]
 
     if not data:
@@ -289,6 +299,63 @@ def get_folder_uid(subject, parsed_file_path):
 
     return folder_uid.unique_id
 
+def add_media_data(
+    files_to_upload,
+    subject,
+    username,
+    redirect_path,
+    disk_path,
+    folder_uid
+):
+    
+    if not files_to_upload or files_to_upload[0].filename == "":
+        flash("Bitte wählen Sie mindestens eine Datei aus.", 'error')
+        return redirect(redirect_path)
+    
+    all_filenames  = [secure_filename(f.filename) for f in files_to_upload]
+    existing_media = [secure_filename(f.filename) for f in Media.query.filter_by(name=username).filter_by(subject=subject).filter_by(path=disk_path).all()]
+    existing_files = [filename         for filename in existing_media if filename in all_filenames]
+    all_uids       = [obj.unique_id    for obj      in Media.query.filter_by(name=current_user.username).all()]
+
+    if existing_files:
+        flash(f"Die Datei/en mit dem/n Namen \"{', '.join(existing_files)}\" existier/t/en bereits", 'error')
+        return redirect(redirect_path)
+
+    for filename in all_filenames:
+
+        if not allowed_file(filename):
+            flash(f"Die Dateiendung \"{filename.rsplit('.')[1]}\" ist nicht erlaubt!", 'error')
+            return redirect(redirect_path)
+
+        while True:
+            uid = ''.join(choice(chars) for i in range(10))
+            if uid not in all_uids:
+                break
+
+        new_media_object = Media(
+            name     =current_user.username, 
+            subject  =subject, 
+            filename =filename,
+            path     =disk_path,
+            category ="file",
+            unique_id=f"{filename.rsplit('.', 1)[0]}_{uid}",
+            in_folder=folder_uid,
+            faccess=True
+        )
+        db.session.add(new_media_object)
+    db.session.commit()
+
+    file_path = Path(disk_path)
+
+    for file in files_to_upload:
+        if file and allowed_file(file.filename):
+            fname = file.filename
+            filename = secure_filename(fname)
+            file.save(path.join(file_path, filename))
+
+    flash(f"Folgende Datei/en wurde/n erfolgreich hochgeladen und gespeichert: \"{', '.join(all_filenames)}\"", 'upload_success')
+
+    return redirect(redirect_path)
 
 @login_required
 @main.route("/add_media", methods=['POST'])
@@ -299,54 +366,15 @@ def add_media():
     parsed_file_path = parse_file_path(file_path_url, current_subject)
     folder_uid       = get_folder_uid(current_subject, parsed_file_path)
 
-    if not files or files[0].filename == "":
-        flash("Bitte wählen Sie mindestens eine Datei aus.", 'error')
-        return redirect(url_for('main.edit_subject', subject=current_subject))
-    
-    all_filenames  = [secure_filename(f.filename) for f in files]
+    return add_media_data(
+        files_to_upload=files,
+        subject=current_subject,
+        username=current_user.username,
+        redirect_path=file_path_url,
+        disk_path=parsed_file_path,
+        folder_uid=folder_uid
+    )
 
-    existing_media = [secure_filename(f.filename) for f in Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).filter_by(path=parsed_file_path).all()]
-    existing_files = [filename         for filename in existing_media if filename in all_filenames]
-    all_uids       = [obj.unique_id    for obj      in Media.query.filter_by(name=current_user.username).all()]
-
-    if existing_files:
-        flash(f"Die Datei/en mit dem/n Namen \"{', '.join(existing_files)}\" existier/t/en bereits", 'error')
-        return redirect(url_for('main.edit_subject', subject=current_subject))
-
-    for filename in all_filenames:
-
-        if not allowed_file(filename):
-            flash(f"Die Dateiendung \"{filename.rsplit('.')[1]}\" ist nicht erlaubt!", 'error')
-            return redirect(url_for("main.edit_subject", subject=current_subject))
-
-        uid = ''.join(choice(chars) for i in range(10))
-        if uid in all_uids:
-            continue
-
-        new_media_object = Media(
-            name     =current_user.username, 
-            subject  =current_subject, 
-            filename =filename,
-            path     =parsed_file_path,
-            category ="file",
-            unique_id=f"{filename.rsplit('.', 1)[0]}_{uid}",
-            in_folder=folder_uid,
-            faccess=True
-        )
-        db.session.add(new_media_object)
-    db.session.commit()
-
-    file_path = Path(parse_file_path(file_path_url, current_subject))
-
-    for file in files:
-        if file and allowed_file(file.filename):
-            fname = file.filename
-            filename = secure_filename(fname)
-            file.save(path.join(file_path, filename))
-
-    flash(f"Folgende Datei/en wurde/n erfolgreich hochgeladen und gespeichert: \"{', '.join(all_filenames)}\"", 'upload_success')
-
-    return redirect(file_path_url)
 
 @login_required
 @main.route("/remove_media", methods=['POST'])
@@ -378,10 +406,13 @@ def remove_media():
     db.session.commit()
 
     for obj in db_media:
-        if obj.category == "file":
-            Path(parsed_file_path, obj.filename).unlink()
-        else:
-            rmtree(Path(parsed_file_path, obj.filename))
+        try:
+            if obj.category == "file":
+                Path(parsed_file_path, obj.filename).unlink()
+            else:
+                rmtree(Path(parsed_file_path, obj.filename))
+        except FileNotFoundError:
+            pass
 
     flash(f"Folgende Medien wurden erfolgreich gelöscht: \"{', '.join(to_remove)}\"", 'media_success')
 
@@ -432,7 +463,7 @@ def add_subject():
         flash("Bitte füllen Sie das Feld aus!", "error")
         return redirect(url_for('main.subjects'))
 
-    filtered_subjects = [subj.subject for subj in Subjects.query.filter_by(subject=subject).all()]
+    filtered_subjects = [subj.subject for subj in Subjects.query.filter_by(name=current_user.username).filter_by(subject=subject).all()]
 
     if filtered_subjects:
         flash(f"Das Fach \"{subject}\" existiert bereits!", "error")

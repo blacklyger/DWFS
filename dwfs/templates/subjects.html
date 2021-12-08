@@ -100,8 +100,8 @@
 <div class="notification is-danger has-text-centered">
     {{ messages[0] }}
 </div>
-{% elif messages[0].startswith('Keine Fächer gefunden!') %}
-<div class="notification is-danger has-text-centered">
+{% elif messages[0].startswith('Keine Fächer gefunden.') %}
+<div class="notification is-info has-text-centered">
     {{ messages[0] }}
 </div>
 {% elif messages[0].startswith('Bitte füllen Sie das Feld aus!') %}

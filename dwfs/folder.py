@@ -8,7 +8,7 @@ from string      import ascii_letters, digits
 from .main       import parse_file_path
 
 folder     = Blueprint('folder', __name__)
-abs_path   = Path("/home/simon/projects/DWFS/dwfs/data")
+#abs_path   = Path("/home/simon/projects/DWFS/dwfs/data")
 chars      = ascii_letters + digits
 
 @folder.route("/add_folder", methods=["POST"])
@@ -43,6 +43,12 @@ def add_folder():
         if generated_uid not in all_uids:
             break
 
+    try:
+        Path(parsed_file_path, f"{folder_name}").mkdir()
+    except FileExistsError:
+        flash(f"Der Ordner \"{folder_name}\" existiert bereits!", 'error')
+        return redirect(current_path)
+
     new_object = Media(
         current_user.username,
         current_subject,
@@ -54,7 +60,5 @@ def add_folder():
     )
     db.session.add(new_object)
     db.session.commit()
-
-    Path(parsed_file_path, f"{folder_name}").mkdir()
 
     return redirect(current_path)

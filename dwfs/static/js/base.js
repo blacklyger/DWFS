@@ -128,3 +128,84 @@ function foreign_access_request(value, folder_uid) {
         }
     });
 }
+
+function send_search_query(value) {
+
+    overview_table = $("#overview_table");
+    search_heading = $("#search_heading");
+    search_table   = $("#search_table");
+
+    search_heading.show();
+
+    if (value == "") {
+        overview_table.show();
+        search_heading.hide();
+        search_table.hide();
+    } else {
+        overview_table.hide();
+        search_heading.html(value);
+        search_table.show();
+    }
+
+    $.ajax({
+        method: "POST",
+        url: "/search_query",
+        data: {
+            value: value,
+            current_subject: $("#current_subject").val(),
+            path: window.location.href
+        }
+    }).done(function(data) {
+
+        if (data == "") {
+            return;
+        }
+
+        l = JSON.parse(data);
+
+        console.log(l);
+
+        var search_results = "";
+
+        search_results += '<thead>';
+        search_results += '<tr>';
+        search_results += `<th class='has-text-centered'><abbr title='Typ'>Typ</abbr></th>`;
+        search_results += `<th class="has-text-centered"><abbr title="Filename">Name</abbr></th>`;
+        search_results += `<th class="has-text-centered"><abbr title="Copy">Download / Teilen</abbr></th>`;
+        search_results += `<th class="has-text-centered"><abbr title="Foreign_Access">Fremdzugang</abbr></th>`;
+        search_results += `<th class="has-text-centered"><abbr title="Remove">Alle <input type="checkbox" onclick="check(this)"></abbr></th>`;
+        search_results += '</tr>';
+        search_results += '</thead>';
+        
+        for (item of l) {
+            search_results += "<tbody>";
+            search_results += "<tr>";
+
+            if (item.is_dir) {
+                search_results += `<td><figure class='image is-32x32'><img src="/static/folder.png"></figure></td>`;
+                search_results += "<td>" + "<a href=" + item.url + ">" + item.filename + "</td>";
+                search_results += "<td>" + item.download_url + "</td>";
+                search_results += `<td class="has-text-centered"><a class='button is-primary' onclick="foreign_access_request('Ja', '` + item.unique_id + `')">Ja</a>
+                                    <a class="button is-danger" onclick="foreign_access_request('Nein', '` + item.unique_id + `')">Nein</a></td>`;
+                search_results += `<td class="has-text-centered">
+                <input name="media_to_remove" type="checkbox" value="` + item.filename +  `">
+            </td>`;
+                
+            } else {
+                search_results += `<td><figure class='image is-32x32'><img src="/static/file.png"></figure></td>`;
+                search_results += "<td>" + "<a href=" + item.download_url + " target='_blank'>" + item.filename + "</td>";
+                search_results += "<td>" + item.download_url + "</td>";
+                search_results += "<td class='has-text-centered'>/</td>";
+                search_results += `<td class="has-text-centered">
+                <input name="media_to_remove" type="checkbox" value="` + item.filename +  `">
+                </td>`;
+            }
+
+            search_results += "</tr>";
+            search_results += "</tbody>";
+        }
+
+        $("#search_table").html(search_results);
+
+    });
+}

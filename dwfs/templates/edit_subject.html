@@ -190,7 +190,7 @@
 
     <div class="column is-two-thirds">
         <section class="section">
-            <p class="title has-text-centered">Übersicht</p>
+            <p class="title has-text-centered has-text-white">Übersicht</p>
             <div class="box has-text-centered">
 
 
@@ -212,7 +212,13 @@
                     <button class="button is-danger">Löschen</button>
                     <a id="regenerate_button" class="button is-info">UIDs neugenerieren</a>
                     <br><br>
-                    <table class="table is-bordered is-fullwidth">
+                    <input class="input" type="text" oninput="send_search_query(this.value);" placeholder="Search"><br><br>
+                    <b><p id="search_heading"></p></b>
+
+                    <table id="search_table" class="table is-bordered is-fullwidth" style="display: none;">
+                    </table>
+
+                    <table id="overview_table" class="table is-bordered is-fullwidth">
 
                         <thead>
                             <tr>
@@ -287,6 +293,7 @@
                         </tbody>
 
                     </table>
+
                     <input type="hidden" id="ctoken" name="csrf_token" value="{{ csrf_token() }}" />
                     <input type="hidden" id="remove_path" name="current_path" />
                     <input id="current_subject" type="hidden" name="current_subject" value="{{ subject }}" />
