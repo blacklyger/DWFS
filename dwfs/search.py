@@ -28,7 +28,7 @@ def search_query(query, subject, path):
     ).all()
 
     if path == url_for("main.edit_subject", subject=subject, _external=True):
-        sres = Media.query.filter_by(name=current_user.username).filter_by(subject=subject).filter(Media.filename.ilike(f"{'%'.join(query)}%")).all()
+        sres = Media.query.filter_by(name=current_user.username).filter_by(subject=subject).filter(Media.filename.ilike(f"%{'%'.join(query)}%")).all()
 
 
     ret = []
