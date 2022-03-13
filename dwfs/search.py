@@ -1,3 +1,4 @@
+from re import sub
 from flask          import Blueprint, render_template, redirect, request, url_for, flash, jsonify
 from .models        import User, Subjects, Media
 from .              import db
@@ -24,7 +25,7 @@ def search_query(query, subject, path):
     ).filter_by(
         path=main.parse_file_path(path, subject)
     ).filter(
-        Media.filename.ilike(f"{query}%")
+        Media.filename.ilike(f"%{'%'.join(query)}%")
     ).all()
 
     if path == url_for("main.edit_subject", subject=subject, _external=True):
