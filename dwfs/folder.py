@@ -6,6 +6,7 @@ from pathlib     import Path
 from random      import choice
 from string      import ascii_letters, digits
 from .main       import parse_file_path
+from werkzeug.utils import secure_filename
 
 folder     = Blueprint('folder', __name__)
 #abs_path   = Path("/home/simon/projects/DWFS/dwfs/data")
@@ -14,7 +15,7 @@ chars      = ascii_letters + digits
 @folder.route("/add_folder", methods=["POST"])
 def add_folder():
     
-    folder_name      = request.form.get("folder_name")
+    folder_name      = secure_filename(request.form.get("folder_name"))
     current_subject  = request.form.get("current_subject")
     current_path     = request.form.get("current_path")
     parsed_file_path = parse_file_path(current_path, current_subject)
