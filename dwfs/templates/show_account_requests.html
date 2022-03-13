@@ -28,38 +28,42 @@
                         </div>
 
                         <div class="content has-text-centered">
-                            <table class="table is-bordered">
+                            <div class="table-container">
+                                <table class="table is-bordered">
 
-                                <thead>
-                                    <tr>
-                                        <th class="has-text-centered"><abbr title="ID"></abbr>ID</th>
-                                        <th class="has-text-centered"><abbr title="Nutzername">Nutzername</abbr></th>
-                                        <th class="has-text-centered"><abbr title="Datum">Datum</abbr></th>
-                                        <th class="has-text-centered"><abbr title="IP-Adresse">IP-Adresse</abbr></th>
-                                        <th class="has-text-centered"><abbr title="Erstellen">Erstellen</abbr></th>
-                                    </tr>
-                                </thead>
+                                    <thead>
+                                        <tr>
+                                            <th class="has-text-centered"><abbr title="ID"></abbr>ID</th>
+                                            <th class="has-text-centered"><abbr title="Nutzername">Nutzername</abbr>
+                                            </th>
+                                            <th class="has-text-centered"><abbr title="Datum">Datum</abbr></th>
+                                            <th class="has-text-centered"><abbr title="IP-Adresse">IP-Adresse</abbr>
+                                            </th>
+                                            <th class="has-text-centered"><abbr title="Erstellen">Erstellen</abbr></th>
+                                        </tr>
+                                    </thead>
 
-                                <tbody>
-                                    {% for id, username, date, ip in requests %}
-                                    <tr>
-                                        <td class="has-text-centered">{{ id }}</td>
-                                        <td class="has-text-centered">{{ username }}</td>
-                                        <td class="has-text-centered">{{ date }}</td>
-                                        <td class="has-text-centered">{{ ip }}</td>
-                                        <td class="has-text-centered">
-                                            <div class="select">
-                                                <select name="access">
-                                                    <option value="no {{ username }}">Nein</option>
-                                                    <option value="yes {{ username }}">Ja</option>
-                                                </select>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
+                                    <tbody>
+                                        {% for id, username, date, ip in requests %}
+                                        <tr>
+                                            <td class="has-text-centered">{{ id }}</td>
+                                            <td class="has-text-centered">{{ username }}</td>
+                                            <td class="has-text-centered">{{ date }}</td>
+                                            <td class="has-text-centered">{{ ip }}</td>
+                                            <td class="has-text-centered">
+                                                <div class="select">
+                                                    <select name="access">
+                                                        <option value="no {{ username }}">Nein</option>
+                                                        <option value="yes {{ username }}">Ja</option>
+                                                    </select>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
 
-                            </table>
+                                </table>
+                            </div>
                         </div>
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     </form>

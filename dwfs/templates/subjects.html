@@ -74,7 +74,7 @@
                         <input name="new_subject_name" class="input is-large" type="text" placeholder="Neuer Fachname">
                     </div>
                 </div>
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button class="button is-block is-primary is-large is-fullwidth">Umbenennen</button>
             </form>
         </div>
@@ -116,32 +116,38 @@
     <div class="column is-fullwidth">
         <section class="section">
             <div class="box">
-                
+
                 <form method="POST" action="/remove_subject">
                     <div class="has-text-centered">
                         <button class="button is-danger">Löschen</button>
                     </div><br>
 
                     <div class="content has-text-centered">
-                        <table class="table is-bordered">
-                            <thead>
-                                <tr>
-                                    <th class="has-text-centered"><abbr title="Subject">Fach</abbr></th>
-                                    <th class="has-text-centered"><abbr title="Medien">Medien</abbr></th>
-                                    <th class="has-text-centered"><abbr title="Alle">Alle <input type="checkbox" onclick="check(this)"></abbr></th>
-                                </tr>
-                            </thead>
+                        <div class="table-container">
+                            <table class="table is-bordered">
+                                <thead>
+                                    <tr>
+                                        <th class="has-text-centered"><abbr title="Subject">Fach</abbr></th>
+                                        <th class="has-text-centered"><abbr title="Medien">Medien</abbr></th>
+                                        <th class="has-text-centered"><abbr title="Alle">Alle <input type="checkbox"
+                                                    onclick="check(this)"></abbr></th>
+                                    </tr>
+                                </thead>
 
-                            <tbody>
-                                {% for subject, media_len in subject_names %}
-                                <tr>
-                                    <td class="has-text-centered"><a href="{{ url_for('main.edit_subject', subject=subject) }}">{{ subject }}</a></td>
-                                    <td class="has-text-centered">{{ media_len }}</td>
-                                    <td class="has-text-centered"><input name="subject_to_remove" type="checkbox" value="{{ subject }}"></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                <tbody>
+                                    {% for subject, media_len in subject_names %}
+                                    <tr>
+                                        <td class="has-text-centered"><a
+                                                href="{{ url_for('main.edit_subject', subject=subject) }}">{{ subject
+                                                }}</a></td>
+                                        <td class="has-text-centered">{{ media_len }}</td>
+                                        <td class="has-text-centered"><input name="subject_to_remove" type="checkbox"
+                                                value="{{ subject }}"></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
 
                         <script>
                             function check(source) {

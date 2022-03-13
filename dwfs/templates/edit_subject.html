@@ -212,44 +212,52 @@
                     <button class="button is-danger">Löschen</button>
                     <a id="regenerate_button" class="button is-info">UIDs neugenerieren</a>
                     <br><br>
-                    <input class="input" type="text" oninput="send_search_query(this.value);" placeholder="Search"><br><br>
-                    <b><p id="search_heading"></p></b>
+                    <input class="input" type="text" oninput="send_search_query(this.value);"
+                        placeholder="Search"><br><br>
+                    <b>
+                        <p id="search_heading"></p>
+                    </b>
 
-                    <table id="search_table" class="table is-bordered is-fullwidth" style="display: none;">
-                    </table>
+                    <div class="table-container">
+                        <table id="search_table" class="table is-bordered is-fullwidth" style="display: none;">
+                        </table>
+                    </div>
 
-                    <table id="overview_table" class="table is-bordered is-fullwidth">
+                    <div class="table-container">
 
-                        <thead>
-                            <tr>
-                                <th class="has-text-centered"><abbr title="Typ">Typ</abbr></th>
-                                <th class="has-text-centered"><abbr title="Filename">Name</abbr></th>
-                                <th class="has-text-centered"><abbr title="Copy">Download / Teilen</abbr></th>
-                                <th class="has-text-centered"><abbr title="Foreign_Access">Fremdzugang</abbr></th>
-                                <th class="has-text-centered">
-                                    <abbr title="Remove">Alle <input type="checkbox" onclick="check(this)"></abbr>
-                                </th>
-                            </tr>
-                        </thead>
+                        <table id="overview_table" class="table is-bordered is-fullwidth">
 
-                        <tbody>
-                            {% for id, fname, file_size, is_dir, path, uid in data %}
+                            <thead>
+                                <tr>
+                                    <th class="has-text-centered"><abbr title="Typ">Typ</abbr></th>
+                                    <th class="has-text-centered"><abbr title="Filename">Name</abbr></th>
+                                    <th class="has-text-centered"><abbr title="Copy">Download / Teilen</abbr></th>
+                                    <th class="has-text-centered"><abbr title="Foreign_Access">Fremdzugang</abbr></th>
+                                    <th class="has-text-centered">
+                                        <abbr title="Remove">Alle <input type="checkbox" onclick="check(this)"></abbr>
+                                    </th>
+                                </tr>
+                            </thead>
 
-                            {% if is_dir %}
+                            <tbody>
+                                {% for id, fname, file_size, is_dir, path, uid in data %}
 
-                            <tr>
-                                <td>
-                                    <figure class="image is-32x32">
-                                        <img src="{{ url_for('static', filename='folder.png') }}">
-                                    </figure>
-                                </td>
-                                <td><a href="{{ path }}">{{ fname }}</a></td>
-                                <td class="has-text-centered">
-                                    {{ url_for('share.share_folder', username=current_user.username, subject=subject,
-                                    folder_name=fname, folder_uid=uid, _external=True) }}
-                                </td>
-                                <td class="has-text-centered">
-                                    <!--
+                                {% if is_dir %}
+
+                                <tr>
+                                    <td>
+                                        <figure class="image is-32x32">
+                                            <img src="{{ url_for('static', filename='folder.png') }}">
+                                        </figure>
+                                    </td>
+                                    <td><a href="{{ path }}">{{ fname }}</a></td>
+                                    <td class="has-text-centered">
+                                        {{ url_for('share.share_folder', username=current_user.username,
+                                        subject=subject,
+                                        folder_name=fname, folder_uid=uid, _external=True) }}
+                                    </td>
+                                    <td class="has-text-centered">
+                                        <!--
                                     <div class="select">
                                         <select id="foreign_access_select" name="selector" onchange="foreign_access_request(this.value, '{{ uid }}')">
                                             <option>Nein</option>
@@ -257,42 +265,47 @@
                                         </select>
                                     </div>
                                     -->
-                                    <a class="button is-primary" onclick="foreign_access_request('Ja', '{{uid}}')">Ja</a>
-                                    <a class="button is-danger" onclick="foreign_access_request('Nein', '{{uid}}')">Nein</a>
-                                </td>
-                                <td class="has-text-centered">
-                                    <input name="media_to_remove" type="checkbox" value="{{ fname }}">
-                                </td>
-                            </tr>
+                                        <a class="button is-primary"
+                                            onclick="foreign_access_request('Ja', '{{uid}}')">Ja</a>
+                                        <a class="button is-danger"
+                                            onclick="foreign_access_request('Nein', '{{uid}}')">Nein</a>
+                                    </td>
+                                    <td class="has-text-centered">
+                                        <input name="media_to_remove" type="checkbox" value="{{ fname }}">
+                                    </td>
+                                </tr>
 
-                            {% else %}
+                                {% else %}
 
-                            <tr>
-                                <!--url_for('main.download_file', uid=uid)-->
-                                <!--url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + get_secure_filename(fname))-->
-                                <td>
-                                    <figure class="image is-32x32"><img
-                                            src="{{ url_for('static', filename='file.png') }}"></figure>
-                                </td>
-                                <td><a target="_blank" href="{{ url_for('main.download_file', uid=uid) }}">{{ fname }}
-                                        <br>[{{file_size}} MB]</a></td>
-                                <td class="has-text-centered">
-                                    {{ url_for('main.download_file', uid=uid, _external=True) }}<br>
-                                    <a href="{{ url_for('main.download_file', uid=uid) }}" class="button is-primary"
-                                        download>Download</a>
-                                </td>
-                                <td class="has-text-centered">/</td>
-                                <td class="has-text-centered"><input name="media_to_remove" type="checkbox"
-                                        value="{{fname}}"></td>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <!--url_for('main.download_file', uid=uid)-->
+                                    <!--url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + get_secure_filename(fname))-->
+                                    <td>
+                                        <figure class="image is-32x32"><img
+                                                src="{{ url_for('static', filename='file.png') }}"></figure>
+                                    </td>
+                                    <td><a target="_blank" href="{{ url_for('main.download_file', uid=uid) }}">{{ fname
+                                            }}
+                                            <br>[{{file_size}} MB]</a></td>
+                                    <td class="has-text-centered">
+                                        {{ url_for('main.download_file', uid=uid, _external=True) }}<br>
+                                        <a href="{{ url_for('main.download_file', uid=uid) }}" class="button is-primary"
+                                            download>Download</a>
+                                    </td>
+                                    <td class="has-text-centered">/</td>
+                                    <td class="has-text-centered"><input name="media_to_remove" type="checkbox"
+                                            value="{{fname}}"></td>
+                                    </td>
+                                </tr>
 
-                            {% endif %}
+                                {% endif %}
 
-                            {% endfor %}
-                        </tbody>
+                                {% endfor %}
+                            </tbody>
 
-                    </table>
+                        </table>
+
+                    </div>
 
                     <input type="hidden" id="ctoken" name="csrf_token" value="{{ csrf_token() }}" />
                     <input type="hidden" id="remove_path" name="current_path" />
