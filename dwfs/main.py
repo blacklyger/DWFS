@@ -315,7 +315,7 @@ def add_media_data(
     all_filenames  = [secure_filename(f.filename) for f in files_to_upload]
     existing_media = [secure_filename(f.filename) for f in Media.query.filter_by(name=username).filter_by(subject=subject).filter_by(path=disk_path).all()]
     existing_files = [filename         for filename in existing_media if filename in all_filenames]
-    all_uids       = [obj.unique_id    for obj      in Media.query.filter_by(name=current_user.username).all()]
+    all_uids       = [obj.unique_id    for obj      in Media.query.filter_by(name=username).all()]
 
     if existing_files:
         flash(f"Die Datei/en mit dem/n Namen \"{', '.join(existing_files)}\" existier/t/en bereits", 'error')
@@ -333,7 +333,7 @@ def add_media_data(
                 break
 
         new_media_object = Media(
-            name     =current_user.username, 
+            name     =username, 
             subject  =subject, 
             filename =filename,
             path     =disk_path,
