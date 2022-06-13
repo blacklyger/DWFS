@@ -395,7 +395,7 @@ def remove_media():
         if not media_object.is_dir():
             Media.query.filter_by(unique_id=media_object.unique_id).delete()
         else:
-            files_in_folder = [obj for obj in Media.query.filter(Media.path.contains(f"{parsed_file_path}{nx}{media_object.filename}"))] # WINDOWS
+            files_in_folder = [obj for obj in Media.query.filter(Media.path.contains(f"{parsed_file_path}{nx}{secure_filename(media_object.filename)}"))] # WINDOWS
             #files_in_folder = [obj for obj in Media.query.filter(Media.path.contains(f"{parsed_file_path}/{media_object.filename}"))] # LINUX
             
             for file_in_folder in files_in_folder:
@@ -406,11 +406,12 @@ def remove_media():
     db.session.commit()
 
     for obj in db_media:
+        filename = secure_filename(obj.filename)
         try:
             if obj.category == "file":
-                Path(parsed_file_path, obj.filename).unlink()
+                Path(parsed_file_path, filename).unlink()
             else:
-                rmtree(Path(parsed_file_path, obj.filename))
+                rmtree(Path(parsed_file_path, filename))
         except FileNotFoundError:
             pass
 
@@ -457,7 +458,7 @@ def change_password():
 @main.route("/add_subject", methods=['POST'])
 def add_subject():
 
-    subject = request.form.get('subject_name')
+    subject = secure_filename(request.form.get('subject_name'))
 
     if not subject:
         flash("Bitte füllen Sie das Feld aus!", "error")
@@ -490,7 +491,7 @@ def remove_subject():
         subj_mod  = Subjects.query.filter_by(name=current_user.username).filter_by(subject=subject).delete()
         media_mod = Media.query.filter_by(name=current_user.username).filter_by(subject=subject).delete()
 
-        file_path = Path(abs_path, f"{current_user.username}/{subject}")
+        file_path = Path(abs_path, f"{current_user.username}/{secure_filename(subject)}")
         rmtree(file_path)
 
     return redirect(url_for('main.subjects'))
@@ -498,8 +499,8 @@ def remove_subject():
 
 @main.route("/rename_subject", methods=["POST"])
 def rename_subject():
-    old_subject_name = request.form.get("old_subject_name")
-    new_subject_name = request.form.get("new_subject_name")
+    old_subject_name = secure_filename(request.form.get("old_subject_name"))
+    new_subject_name = secure_filename(request.form.get("new_subject_name"))
 
     subjects_match = Subjects.query.filter_by(name=current_user.username).filter_by(subject=old_subject_name).first()
     media_match    = Media.query.filter_by(subject=old_subject_name).all()
@@ -525,8 +526,8 @@ def rename_subject():
 
 @main.route("/rename_file", methods=["POST"])
 def rename_file():
-    old_filename     = request.form.get("old_filename")
-    new_filename     = request.form.get("new_filename")
+    old_filename     = secure_filename(request.form.get("old_filename"))
+    new_filename     = secure_filename(request.form.get("new_filename"))
     category         = request.form.get("selector")
     current_subject  = request.form.get("current_subject")
     current_path     = request.form.get("rename_path")
