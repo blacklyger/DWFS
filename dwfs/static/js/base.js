@@ -193,7 +193,7 @@ function send_search_query(value) {
                 
             } else {
                 search_results += `<td><figure class='image is-32x32'><img src="/static/file.png"></figure></td>`;
-                search_results += "<td>" + "<a href=" + item.download_url + " target='_blank'>" + item.filename + "</td>";
+                search_results += "<td>" + "<a href=" + item.download_url + " target='_blank'>" + item.filename + "<br>" + "[" + item.file_size + " MB]" + "</td>";
                 search_results += "<td>" + item.download_url + "</td>";
                 search_results += "<td class='has-text-centered'>/</td>";
                 search_results += `<td class="has-text-centered">
