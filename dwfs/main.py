@@ -15,6 +15,9 @@ from pathlib import Path
 from datetime import datetime
 from urllib.parse import urlparse
 from .share import share
+from zipfile import ZipFile
+from io import BytesIO
+from re import match
 
 main = Blueprint('main', __name__)
 
@@ -429,6 +432,30 @@ def download_file(uid):
 
     file_path = Path(filtered_uid.path, secure_filename(filtered_uid.filename))
     return send_file(file_path)
+
+def remove_zip_archives(path, zip_file_scheme: str):
+    for file in listdir(path):
+        if match(zip_file_scheme, file):
+            Path(path, file).unlink()
+
+@main.route("/download_files", methods=['POST'])
+def download_files():
+    current_subject = request.form.get('current_subject')
+    current_path    = request.form.get("current_path")
+    files_to_download = request.form.getlist("change[]")
+    parsed_file_path = parse_file_path(current_path, current_subject)
+
+    remove_zip_archives("D:\\XTEC\\computer_science\\software\\DWFS\\dwfs\\static", r"archive_\w+\.zip")
+
+    uid = ''.join(choice(chars) for i in range(10))
+
+    with ZipFile(f"D:\\XTEC\\computer_science\\software\\DWFS\\dwfs\\static\\archive_{uid}.zip", "w") as zf:
+        for file in files_to_download:
+            media_obj = Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).filter_by(path=parsed_file_path).filter_by(filename=file).first()
+            path = Path(media_obj.path, file)
+            zf.write(path, media_obj.filename)
+
+    return f"archive_{uid}.zip" #send_file(stream, as_attachment=True, attachment_filename="archive.zip")
 
 
 @main.route("/change_password", methods=['POST'])

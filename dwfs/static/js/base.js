@@ -77,7 +77,6 @@ function copy_link(it) {
     document.execCommand('copy');
 }
 
-
 $(function () {
 
     var ctoken = $("#ctoken").val();
@@ -93,7 +92,7 @@ $(function () {
     $("a#regenerate_button").on('click', function (e) {
 
         checkBoxes = document.getElementsByName('media_to_remove');
-        to_change  = [];
+        to_change = [];
 
         for (i = 0; i < checkBoxes.length; i++) {
             if (checkBoxes[i].checked) {
@@ -116,6 +115,32 @@ $(function () {
         });
         e.preventDefault();
     });
+
+    $("a#download_files_button").on('click', function (e) {
+
+        e.preventDefault();
+
+        checkBoxes = document.getElementsByName('media_to_remove');
+        to_change = [];
+
+        for (i = 0; i < checkBoxes.length; i++) {
+            if (checkBoxes[i].checked) {
+                to_change.push(checkBoxes[i].value);
+            }
+        }
+
+        $.ajax({
+            method: "POST",
+            url: "/download_files",
+            data: {
+                current_subject: $("#current_subject").val(),
+                current_path: window.location.href,
+                change: to_change
+            }
+        }).done(function (data) {
+            window.open("http://127.0.0.1:5000/static/" + data);
+        });
+    });
 });
 
 function foreign_access_request(value, folder_uid) {
@@ -133,7 +158,7 @@ function send_search_query(value) {
 
     overview_table = $("#overview_table");
     search_heading = $("#search_heading");
-    search_table   = $("#search_table");
+    search_table = $("#search_table");
 
     search_heading.show();
 
@@ -155,7 +180,7 @@ function send_search_query(value) {
             current_subject: $("#current_subject").val(),
             path: window.location.href
         }
-    }).done(function(data) {
+    }).done(function (data) {
 
         if (data == "") {
             return;
@@ -176,7 +201,7 @@ function send_search_query(value) {
         search_results += `<th class="has-text-centered"><abbr title="Remove">Alle <input type="checkbox" onclick="check(this)"></abbr></th>`;
         search_results += '</tr>';
         search_results += '</thead>';
-        
+
         for (item of l) {
             search_results += "<tbody>";
             search_results += "<tr>";
@@ -188,16 +213,16 @@ function send_search_query(value) {
                 search_results += `<td class="has-text-centered"><a class='button is-primary' onclick="foreign_access_request('Ja', '` + item.unique_id + `')">Ja</a>
                                     <a class="button is-danger" onclick="foreign_access_request('Nein', '` + item.unique_id + `')">Nein</a></td>`;
                 search_results += `<td class="has-text-centered">
-                <input name="media_to_remove" type="checkbox" value="` + item.filename +  `">
+                <input name="media_to_remove" type="checkbox" value="` + item.filename + `">
             </td>`;
-                
+
             } else {
                 search_results += `<td><figure class='image is-32x32'><img src="/static/file.png"></figure></td>`;
                 search_results += "<td>" + "<a href=" + item.download_url + " target='_blank'>" + item.filename + "<br>" + "[" + item.file_size + " MB]" + "</td>";
                 search_results += "<td>" + item.download_url + "</td>";
                 search_results += "<td class='has-text-centered'>/</td>";
                 search_results += `<td class="has-text-centered">
-                <input name="media_to_remove" type="checkbox" value="` + item.filename +  `">
+                <input name="media_to_remove" type="checkbox" value="` + item.filename + `">
                 </td>`;
             }
 
