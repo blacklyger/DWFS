@@ -8,7 +8,7 @@ from .              import main
 from random         import choice
 
 share = Blueprint("share", __name__)
-nx = "\\"
+nx = "/"
 #data_path = Path("D:\\XTEC\\computer_science\\software\\DWFS\\dwfs\\data")
 
 @share.route("/share/<username>/<subject>/<folder_name>/<folder_uid>")

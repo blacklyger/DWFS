@@ -1,7 +1,6 @@
 from . import db
 from flask_login import UserMixin
 
-
 class User(UserMixin, db.Model):
 
     __tablename__ = "users"
@@ -77,3 +76,7 @@ class AccountRequest(UserMixin, db.Model):
         self.password   = password
         self.date       = date
         self.ip_address = ip_address
+
+from . import app
+with app.app_context():
+    db.create_all()

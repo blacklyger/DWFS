@@ -1,3 +1,3 @@
 from dwfs import app as application
 
-application.run(debug=True)
+#application.run(host="0.0.0.0", debug=True)

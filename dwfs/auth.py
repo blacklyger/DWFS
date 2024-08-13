@@ -27,9 +27,9 @@ def login_some():
 
 
 @auth.route('/register')
+#@login_required
 def register():
     return render_template('register.html')
-
 
 @auth.route('/register', methods=['POST'])
 def register_some():
@@ -44,7 +44,7 @@ def register_some():
         flash(f"Der Admin \"{username}\" existiert bereits!")
         return redirect(url_for('auth.register'))
 
-    new_user = User(username=username, password=generate_password_hash(password, method='sha256'), role=role)
+    new_user = User(username=username, password=generate_password_hash(password, method='scrypt'), role=role)
 
     db.session.add(new_user)
     db.session.commit()

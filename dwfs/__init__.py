@@ -3,7 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
+from flask_session import Session
 
+sess = Session()
 db = SQLAlchemy()
 csrf = CSRFProtect()
 
@@ -14,14 +16,16 @@ app.config['SECRET_KEY'] = 'REMOVED'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = 2048 * 2048 * 2048
+app.config['SESSION_TYPE'] = 'filesystem'
 
 db.init_app(app)
 csrf.init_app(app)
+sess.init_app(app)
 
-@app.before_first_request
-def create_tables():
-    db.create_all()
+#@app.before_first_request
+#def create_tables():
+#    db.create_all()
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'

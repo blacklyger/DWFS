@@ -18,13 +18,16 @@ from .share import share
 from zipfile import ZipFile
 from io import BytesIO
 from re import match
+from time import sleep
+from threading import Thread
+from math import ceil
 
 main = Blueprint('main', __name__)
 
-abs_path = Path("D:\\XTEC\\computer_science\\software\\DWFS\\dwfs\\data")
+abs_path = Path("/home/simon/simoinfs/dwfs/data")
 chars = digits + ascii_letters
 
-nx = "\\"
+nx = "/"
 
 ALLOWED_EXTENSIONS = [
     "txt", "pdf", "zip", "tar",
@@ -124,7 +127,7 @@ def req_new_acc():
         username  =username, 
         password  =password,
         date      =datetime.now(),
-        ip_address=request.remote_addr
+        ip_address=request.headers.get("X-Forwarded-For")
     )
 
     db.session.add(user_request)
@@ -223,6 +226,18 @@ def create_url_from_media_path(media_path: str, filename: str) -> str:
 @login_required
 def edit_subject(subject, p):
 
+    page = request.args.get("page")
+    limit = request.args.get("limit")
+
+    if not page or not page.isdigit():
+        page = 1
+
+    if not limit or not limit.isdigit():
+        limit = 10
+
+    page = int(page)
+    limit = int(limit)
+
     if not p:
         path = Path(abs_path, f"{current_user.username}/{subject}")
     else:
@@ -240,7 +255,7 @@ def edit_subject(subject, p):
     subject=subject
     ).filter_by(
         path=str(path)
-    ).all()
+    )
 
     data = [
         (
@@ -252,7 +267,7 @@ def edit_subject(subject, p):
             f.unique_id
         ) 
         
-        for i, f in enumerate(root_data)
+        for i, f in enumerate(reversed(root_data.offset((page - 1) * limit).limit(limit).all()))
         #if (full_path := f"{url_for('main.index', _external=True)}edit_subject{f.path.rsplit(f'{str(abs_path)}/{current_user.username}')[0]}/{f.filename}") # LINUX
         #if (full_path := f"{url_for('main.index', _external=True)}edit_subject{f.path.rsplit(f'{str(abs_path)}{nx}{current_user.username}')[1]}/{f.filename}") # WINDOWS
     ]
@@ -261,9 +276,12 @@ def edit_subject(subject, p):
         flash("Es wurden keine Medien gefunden.", 'media_error')
     
     return render_template(
-        "edit_subject.html", 
+        "edit_subject.html",
         subject=subject, 
-        data=data
+        data=data,
+        num_pages=ceil(len(root_data.all()) / limit),
+        current_page=page,
+        current_limit=limit
     )
 
 
@@ -311,24 +329,27 @@ def add_media_data(
     folder_uid
 ):
     
-    if not files_to_upload or files_to_upload[0].filename == "":
-        flash("Bitte wählen Sie mindestens eine Datei aus.", 'error')
-        return redirect(redirect_path)
+    if not files_to_upload or list(files_to_upload.values())[0].filename == "":
+        #flash("Bitte wählen Sie mindestens eine Datei aus.", 'error')
+        return "Bitte wählen Sie mindestens eine Date aus." #redirect(redirect_path)
     
-    all_filenames  = [secure_filename(f.filename) for f in files_to_upload]
+    all_filenames  = [secure_filename(f.filename) for f in files_to_upload.values()]
     existing_media = [secure_filename(f.filename) for f in Media.query.filter_by(name=username).filter_by(subject=subject).filter_by(path=disk_path).all()]
     existing_files = [filename         for filename in existing_media if filename in all_filenames]
     all_uids       = [obj.unique_id    for obj      in Media.query.filter_by(name=username).all()]
 
     if existing_files:
-        flash(f"Die Datei/en mit dem/n Namen \"{', '.join(existing_files)}\" existier/t/en bereits", 'error')
-        return redirect(redirect_path)
-
+        #flash(f"Die Datei/en mit dem/n Namen \"{', '.join(existing_files)}\" existier/t/en bereits", 'error')
+        return f"""Die Datei/en mit dem/n Namen \"{', '.join(existing_files)}\" existier/t/en bereits""" #redirect(redirect_path)
+    
+    # TODO: Collect filenames which are not allowed in a list; when done, return "OK" and the list of not allowed filenames
     for filename in all_filenames:
 
         if not allowed_file(filename):
-            flash(f"Die Dateiendung \"{filename.rsplit('.')[1]}\" ist nicht erlaubt!", 'error')
-            return redirect(redirect_path)
+            continue
+        #    #flash(f"Die Dateiendung \"{filename.rsplit('.')[1]}\" ist nicht erlaubt!", 'error')
+        #    #return f"""Die Dateiendung \"{filename.rsplit('.')[1]}\" ist nicht erlaubt!""" #redirect(redirect_path)
+        #    return f"""Dateiendung nicht erlaubt!"""
 
         while True:
             uid = ''.join(choice(chars) for i in range(10))
@@ -350,20 +371,20 @@ def add_media_data(
 
     file_path = Path(disk_path)
 
-    for file in files_to_upload:
+    for i, file in enumerate(files_to_upload.values()):
         if file and allowed_file(file.filename):
             fname = file.filename
             filename = secure_filename(fname)
             file.save(path.join(file_path, filename))
 
-    flash(f"Folgende Datei/en wurde/n erfolgreich hochgeladen und gespeichert: \"{', '.join(all_filenames)}\"", 'upload_success')
+    #flash(f"Folgende Datei/en wurde/n erfolgreich hochgeladen und gespeichert: \"{', '.join(all_filenames)}\"", 'upload_success')
 
-    return redirect(redirect_path)
+    return "OK" #redirect(redirect_path)
 
-@login_required
+#@login_required
 @main.route("/add_media", methods=['POST'])
 def add_media():
-    files            = request.files.getlist('media')
+    files            = request.files
     current_subject  = request.form.get('current_subject')
     file_path_url    = request.form.get("file_path")
     parsed_file_path = parse_file_path(file_path_url, current_subject)
@@ -378,6 +399,7 @@ def add_media():
         folder_uid=folder_uid
     )
 
+    return "OK"
 
 @login_required
 @main.route("/remove_media", methods=['POST'])
@@ -422,6 +444,16 @@ def remove_media():
 
     return redirect(url_for('main.edit_subject', subject=current_subject))
 
+#@main.route("/blubby", methods=['POST'])
+#def blubby():
+#    
+#    files = request.files
+#    current_subject = request.form.get("current_subject")
+#    file_path_url = request.form.get("file_path")
+#
+#    print(current_subject, file_path_url)
+#    
+#    return "OK"
 
 @main.route("/download/<uid>")
 def download_file(uid):
@@ -434,6 +466,7 @@ def download_file(uid):
     return send_file(file_path)
 
 def remove_zip_archives(path, zip_file_scheme: str):
+    #sleep()
     for file in listdir(path):
         if match(zip_file_scheme, file):
             Path(path, file).unlink()
@@ -444,16 +477,25 @@ def download_files():
     current_path    = request.form.get("current_path")
     files_to_download = request.form.getlist("change[]")
     parsed_file_path = parse_file_path(current_path, current_subject)
+    
+    if not files_to_download:
+        return "NA"
 
-    remove_zip_archives("D:\\XTEC\\computer_science\\software\\DWFS\\dwfs\\static", r"archive_\w+\.zip")
+    remove_zip_archives("/home/simon/dwfs/dwfs/static", r"archive_\w+\.zip")
 
     uid = ''.join(choice(chars) for i in range(10))
 
-    with ZipFile(f"D:\\XTEC\\computer_science\\software\\DWFS\\dwfs\\static\\archive_{uid}.zip", "w") as zf:
+    # TODO: When downloading folders as ZIP archives, include all files in that folder (recursiveness)
+
+    with ZipFile(f"/home/simon/dwfs/dwfs/static/archive_{uid}.zip", "w") as zf:
         for file in files_to_download:
             media_obj = Media.query.filter_by(name=current_user.username).filter_by(subject=current_subject).filter_by(path=parsed_file_path).filter_by(filename=file).first()
+            print(type(media_obj))
             path = Path(media_obj.path, file)
             zf.write(path, media_obj.filename)
+    
+    #t = Thread(target=remove_zip_archives, args=("/home/simon/dwfs/dwfs/static", r"archive_\w+\.zip"))
+    #t.start()
 
     return f"archive_{uid}.zip" #send_file(stream, as_attachment=True, attachment_filename="archive.zip")
 

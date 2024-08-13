@@ -140,6 +140,8 @@
 {% endif %}
 {% endwith %}
 
+<div id="upload_error"></div>
+
 <div class="columns">
 
     <div class="column is-fullwidth">
@@ -157,14 +159,15 @@
                 {% endif %}
                 {% endwith %}
 
-                <form method="POST" action="/add_media" enctype="multipart/form-data">
+                <!--<form method="POST" action="/add_media" enctype="multipart/form-data">-->
+                <form id="myform">
                     <div class="content">
                         <div class="field">
                             <div class="control">
                                 <div class="file is-large is-centered">
                                     <label class="file-label">
                                         <input class="file-input" id="fileupload" onchange="get_all_files()" type="file"
-                                            name="media" multiple>
+                                            multiple>
                                         <span class="file-cta">
                                             <i class="fas fa-upload"></i>
                                             <span class="file-label">
@@ -179,10 +182,13 @@
                             <table id="filetable" class="table is-bordered"></table>
                         </div>
                     </div>
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <input type="hidden" name="current_subject" value="{{ subject }}" />
+                    <h1 class="subtitle has-text-centered" id="progress_label"></h1>
+                    <progress class="progress is-primary is-medium" id="upload_progress" value="0" max="100"></progress>
+                    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" id="current_subject" name="current_subject" value="{{ subject }}" />
                     <input id="file_path" type="hidden" name="file_path" />
-                    <button class="button is-block is-info is-large is-fullwidth">Hinzufügen</button>
+                    <button type="button" class="button is-block is-info is-large is-fullwidth"
+                        onclick="postFile()">Hinzufügen</button>
                 </form>
             </div>
         </section>
@@ -212,6 +218,47 @@
                     <button class="button is-danger">Löschen</button>
                     <a id="regenerate_button" class="button is-info">UIDs neugenerieren</a>
                     <a id="download_files_button" class="button is-primary">Download</a>
+
+                    <div id="dd_menu_page" class="dropdown is-pulled-left mr-2">
+                        <div class="dropdown-trigger">
+                            <a class="button" aria-haspopup="true" aria-controls="dropdown-menu"
+                                onclick="dropdown_trigger('dd_menu_page')">
+                                <span id="current_page_display">Page</span>
+                                <span class="icon is-small">
+                                    <i class="fas fa-angle-down" aria-hidden="true">&#x25BC;</i>
+                                </span>
+                            </a>
+                        </div>
+                        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                            <div class="dropdown-content">
+
+                                {% for page in range(1, num_pages + 1) %}
+                                <a href="{{ url_for('main.edit_subject', subject=subject, page=page, limit=current_limit) }}" class="dropdown-item">Page {{ page }}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="dd_menu_limit" class="dropdown is-pulled-left">
+                        <div class="dropdown-trigger">
+                            <a class="button" aria-haspopup="true" aria-controls="dropdown-menu"
+                                onclick="dropdown_trigger('dd_menu_limit')">
+                                <span id="current_limit_display">Results</span>
+                                <span class="icon is-small">
+                                    <i class="fas fa-angle-down" aria-hidden="true">&#x25BC;</i>
+                                </span>
+                            </a>
+                        </div>
+                        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                            {% for r in [5, 10, 20, 50, 75, 100] %}
+                            <div class="dropdown-content">
+                                <a href="{{ url_for('main.edit_subject', subject=subject, page=current_page, limit=r) }}" class="dropdown-item">Show {{ r }} results</a>
+                            </div>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+
                     <br><br>
                     <input class="input" type="text" oninput="send_search_query(this.value);"
                         placeholder="Search"><br><br>
@@ -282,7 +329,7 @@
                                     <!--url_for('main.download_file', uid=uid)-->
                                     <!--url_for('static', filename='upload/' + current_user.username + '/' + subject + '/' + get_secure_filename(fname))-->
                                     <td>
-                                        <figure class="image is-32x32"><img
+					    <figure class="image is-32x32"><img
                                                 src="{{ url_for('static', filename='file.png') }}"></figure>
                                     </td>
                                     <td><a target="_blank" href="{{ url_for('main.download_file', uid=uid) }}">{{ fname

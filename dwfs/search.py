@@ -10,7 +10,7 @@ from pathlib        import Path
 from json           import dumps
 
 search = Blueprint("search", __name__)
-nx = "\\"
+nx = "/"
 #abs_path = Path("D:\\XTEC\\computer_science\\software\\DWFS\\dwfs\\data")
 
 def search_query(query, subject, path):

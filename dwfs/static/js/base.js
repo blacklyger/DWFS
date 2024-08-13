@@ -32,6 +32,14 @@ function close_modal(modal_name) {
     document.getElementById(modal_name).classList.remove('is-active');
 }
 
+/*function progressHandler(event) {
+    console.log(event.loaded);
+    console.log(event.total);
+}
+
+function completeHandler(event) {
+    console.log(event);
+}*/
 
 function get_all_files() {
     var data = document.getElementById('fileupload').files;
@@ -57,6 +65,101 @@ function get_all_files() {
     });
 
     $('#filetable').html(file_data);
+
+    /*var formdata = new FormData();
+    formdata.append('fileupload', $('fileupload').files);
+
+    var ajax = new XMLHttpRequest();
+    ajax.upload.addEventListener("progress", progressHandler, false);
+    ajax.addEventListener("load", completeHandler, false);
+
+    ajax.open('POST', 'https://files.origin7.de/blubby');
+    ajax.setRequestHeader('X-CSRF-Token', $('#ctoken').val());
+    ajax.send(formdata);*/
+}
+
+
+function roundTo(number, decimal_places) {
+    let p = Math.pow(10, decimal_places);
+    return Math.round(number * p) / p;
+}
+
+function postFile() {
+
+    // TODO: Check if file extension is allowed BEFORE uploading the file
+    var formData = new FormData();
+
+    var files = $('#fileupload')[0].files;
+    console.log(files);
+
+    for (i = 0; i < files.length; i++) {
+        formData.append(`file_${i}`, files[i]);
+        console.log(files[i]);
+    }
+
+    formData.append('current_subject', $('#current_subject').val());
+    formData.append('file_path', $('#file_path').val());
+
+    console.log(formData);
+
+    $.ajax({
+        xhr: function () {
+            var xhr = new XMLHttpRequest();
+
+            var lTime = new Date().getTime();
+            var lastMB = 0;
+
+            xhr.upload.addEventListener("progress", function (evt) {
+
+                if (evt.lengthComputable) {
+                    var now = new Date().getTime();
+                    var percentComplete = evt.loaded / evt.total;
+                    percentComplete = parseInt(percentComplete * 100);
+                    $('#upload_progress').val(percentComplete);
+
+                    var bytes = evt.loaded;
+                    var total = evt.total;
+                    var MB = bytes / 1000000;
+                    var uploadedMB = MB - lastMB;
+                    var elapsed = (now - lTime) / 1000;
+                    var mbps = elapsed ? roundTo((uploadedMB / elapsed) * 8, 2) : 0;
+                    lastMB = MB;
+                    lTime = now;
+
+
+                    $('#progress_label').text(`${percentComplete}% [${roundTo(evt.loaded / 1000000, 2)} MB of ${roundTo(evt.total / 1000000, 2)} MB with ${mbps} MBit/s (${roundTo(mbps / 8, 2)} MByte/s)]`);
+                    console.log(percentComplete);
+                }
+
+            }, false);
+
+            return xhr;
+        },
+        url: "/add_media",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+    }).done(function (data) {
+
+        if (data != "OK") {
+
+            $('#upload_error').html(`<div class="notification is-danger has-text-centered">${data}</div>"`);
+
+            setTimeout(function () {
+                location.reload();
+            }, 5000);
+
+            return;
+        }
+
+        $('#progress_label').text("Upload complete!");
+
+        setTimeout(function () {
+            location.reload();
+        }, 2000);
+
+    });
 }
 
 function check(source) {
@@ -138,9 +241,26 @@ $(function () {
                 change: to_change
             }
         }).done(function (data) {
-            window.open("http://127.0.0.1:5000/static/" + data);
+
+            if (data == "NA") {
+                return;
+            }
+
+            window.open("https://files.origin7.de/static/" + data);
         });
     });
+
+    const params = new URLSearchParams(window.location.search);
+
+    var page = params.get("page");
+    var limit = params.get("limit");
+
+    var dropdown_text_page = page ? "Page " + page : "Page 1";
+    var dropdown_text_limit = limit ? "Show " + limit + " results" : "Show 10 results";
+
+    $("#current_page_display").text(dropdown_text_page);
+    $("#current_limit_display").text(dropdown_text_limit);
+    
 });
 
 function foreign_access_request(value, folder_uid) {
@@ -233,4 +353,9 @@ function send_search_query(value) {
         $("#search_table").html(search_results);
 
     });
+}
+
+function dropdown_trigger(element_id) {
+    var dropdown_classlist = document.getElementById(element_id).classList;
+    dropdown_classlist.contains("is-active") ? dropdown_classlist.remove("is-active") : dropdown_classlist.add("is-active");
 }
