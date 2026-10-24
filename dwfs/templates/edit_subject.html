@@ -52,7 +52,7 @@
     <div class="modal-background"></div>
     <div class="modal-content">
         <div class="box has-text-centered">
-            <form method="POST" action="/add_folder">
+            <form method="POST" action="{{ url_for('folder.add_folder') }}">
                 <div class="field">
                     <div class="control">
                         <input name="folder_name" class="input is-large" placeholder="Ordnername">
@@ -73,7 +73,7 @@
     <div class="modal-background"></div>
     <div class="modal-content">
         <div class="box has-text-centered">
-            <form method="POST" action="/rename_file">
+            <form method="POST" action="{{ url_for('main.rename_file') }}">
                 <div class="field">
                     <div class="control">
                         <input name="old_filename" class="input is-large" type="text" placeholder="Alter Name">
@@ -82,14 +82,6 @@
                 <div class="field">
                     <div class="control">
                         <input name="new_filename" class="input is-large" type="text" placeholder="Neuer Name">
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="select">
-                        <select name="selector">
-                            <option>Datei</option>
-                            <option>Ordner</option>
-                        </select>
                     </div>
                 </div>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -114,30 +106,12 @@
     </div>
 </div>
 
-{% with messages = get_flashed_messages(category_filter=['error', 'success']) %}
-{% if messages %}
-{% if messages[0].startswith('Die Datei/en mit dem/n Namen') %}
-<div class="notification is-danger has-text-centered">
-    {{ messages[0] }}
+{% with messages = get_flashed_messages(with_categories=true, category_filter=['error', 'success']) %}
+{% for category, message in messages %}
+<div class="notification {{ 'is-danger' if category == 'error' else 'is-success' }} has-text-centered">
+    {{ message }}
 </div>
-{% elif messages[0].startswith('Bitte wählen Sie mindestens eine Datei aus') %}
-<div class="notification is-danger has-text-centered">
-    {{ messages[0] }}
-</div>
-{% elif messages[0].startswith('Die Dateiendung') %}
-<div class="notification is-danger has-text-centered">
-    {{ messages[0] }}
-</div>
-{% elif messages[0].startswith('Der Ordner') %}
-<div class="notification is-danger has-text-centered">
-    {{ messages[0] }}
-</div>
-{% elif messages[0].startswith('Die Datei mit dem Namen') %}
-<div class="notification is-danger has-text-centered">
-    {{ messages[0] }}
-</div>
-{% endif %}
-{% endif %}
+{% endfor %}
 {% endwith %}
 
 <div id="upload_error"></div>
@@ -214,7 +188,7 @@
                 {% endif %}
                 {% endwith %}
 
-                <form method="POST" action="/remove_media">
+                <form method="POST" action="{{ url_for('main.remove_media') }}">
                     <button class="button is-danger">Löschen</button>
                     <a id="regenerate_button" class="button is-info">UIDs neugenerieren</a>
                     <a id="download_files_button" class="button is-primary">Download</a>
@@ -233,7 +207,7 @@
                             <div class="dropdown-content">
 
                                 {% for page in range(1, num_pages + 1) %}
-                                <a href="{{ url_for('main.edit_subject', subject=subject, page=page, limit=current_limit) }}" class="dropdown-item">Page {{ page }}</a>
+                                <a href="{{ url_for(request.endpoint, **dict(request.view_args, page=page, limit=current_limit)) }}" class="dropdown-item">Page {{ page }}</a>
                                 {% endfor %}
                             </div>
                         </div>
@@ -252,7 +226,7 @@
                         <div class="dropdown-menu" id="dropdown-menu" role="menu">
                             {% for r in [5, 10, 20, 50, 75, 100] %}
                             <div class="dropdown-content">
-                                <a href="{{ url_for('main.edit_subject', subject=subject, page=current_page, limit=r) }}" class="dropdown-item">Show {{ r }} results</a>
+                                <a href="{{ url_for(request.endpoint, **dict(request.view_args, page=current_page, limit=r)) }}" class="dropdown-item">Show {{ r }} results</a>
                             </div>
                             {% endfor %}
 
@@ -314,9 +288,9 @@
                                     </div>
                                     -->
                                         <a class="button is-primary"
-                                            onclick="foreign_access_request('Ja', '{{uid}}')">Ja</a>
+                                            data-uid="{{ uid }}" onclick="foreign_access_request('Ja', this.dataset.uid)">Ja</a>
                                         <a class="button is-danger"
-                                            onclick="foreign_access_request('Nein', '{{uid}}')">Nein</a>
+                                            data-uid="{{ uid }}" onclick="foreign_access_request('Nein', this.dataset.uid)">Nein</a>
                                     </td>
                                     <td class="has-text-centered">
                                         <input name="media_to_remove" type="checkbox" value="{{ fname }}">

@@ -1,1 +1,13 @@
 __pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Runtime data: database, secret key and uploaded files must never be committed
+instance/
+data/
+*.sqlite
+*.sqlite3
+*.db
+.env

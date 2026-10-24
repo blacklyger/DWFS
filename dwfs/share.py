@@ -1,91 +1,107 @@
-from flask          import Blueprint, render_template, redirect, request, url_for, flash
-from .models        import User, Subjects, Media
+from flask          import Blueprint, render_template, redirect, request, url_for, flash, abort
+from .models        import Media
 from .              import db
 from flask_login    import login_required, current_user
 from pathlib        import Path
-from werkzeug.utils import secure_filename
 from .              import main
-from random         import choice
+from .security      import confine
 
 share = Blueprint("share", __name__)
-nx = "/"
-#data_path = Path("D:\\XTEC\\computer_science\\software\\DWFS\\dwfs\\data")
+
+
+def get_shared_folder(folder_uid):
+    folder = Media.query.filter_by(unique_id=folder_uid, category="folder").first()
+    if not folder:
+        abort(404)
+    return folder
+
+
+def folder_url(folder):
+    return url_for('share.share_folder', username=folder.name, subject=folder.subject,
+                   folder_name=folder.filename, folder_uid=folder.unique_id)
+
+
+def may_modify(folder):
+    """The owner may always modify, others only if foreign access is enabled."""
+    return folder.has_foreign_access() or (current_user.is_authenticated and current_user.username == folder.name)
+
 
 @share.route("/share/<username>/<subject>/<folder_name>/<folder_uid>")
 def share_folder(username, subject, folder_name, folder_uid):
 
-    folder = Media.query.filter_by(unique_id=folder_uid).first()
-
-    if not folder:
-        return redirect(url_for('main.index'))
-
-    files_in_folder = Media.query.filter_by(name=username, subject=subject, category="file", in_folder=folder_uid).all()
+    # Owner, subject and name are always taken from the database, never from the URL.
+    folder = get_shared_folder(folder_uid)
+    files_in_folder = Media.query.filter_by(name=folder.name, subject=folder.subject, category="file", in_folder=folder.unique_id).all()
 
     return render_template(
         "folder.html",
-        username=username,
-        subject=subject,
-        folder_name=folder_name,
-        folder_uid=folder_uid,
+        username=folder.name,
+        subject=folder.subject,
+        folder_name=folder.filename,
+        folder_uid=folder.unique_id,
         files=files_in_folder,
-        faccess=folder.has_foreign_access()
+        faccess=may_modify(folder)
     )
 
 
 @share.route("/remove_shared_files", methods=["POST"])
 def remove_shared_files():
-    files_to_remove = request.form.getlist("media_to_remove")
-    path            = request.form.get("path")
+    folder = get_shared_folder(request.form.get("folder_uid"))
 
-    for file_to_remove in files_to_remove:
-        file_in_db = Media.query.filter_by(unique_id=file_to_remove)
+    if not may_modify(folder):
+        abort(403)
 
-        file_to_remove_object = file_in_db.first()
-        Path(file_in_db.first().path, file_to_remove_object.filename).unlink()
-        file_in_db.delete()
-        
+    removed = []
+    for file_uid in request.form.getlist("media_to_remove"):
+        # Only files that really live in this shared folder can be removed.
+        media_obj = Media.query.filter_by(unique_id=file_uid, category="file", in_folder=folder.unique_id).first()
+        if not media_obj:
+            continue
 
-    flash(f"Removed files: {', '.join(files_to_remove)}", "upload_success")
+        confine(media_obj.path, media_obj.filename).unlink(missing_ok=True)
+        db.session.delete(media_obj)
+        removed.append(media_obj.filename)
 
-    return redirect(path)
+    db.session.commit()
+
+    flash(f"Removed files: {', '.join(removed)}", "upload_success")
+
+    return redirect(folder_url(folder))
 
 @share.route("/add_shared_files", methods=["POST"])
 def add_shared_files():
-    files_to_add = request.files.getlist("media_to_add")
-    path           = request.form.get("path")
-    folder_uid     = request.form.get("folder_uid")
-    folder_name    = request.form.get("folder_name")
-    username       = request.form.get("username")
-    subject        = request.form.get("subject")
-    current_folder = Media.query.filter_by(unique_id=folder_uid).first()
-    filepath       = f"{current_folder.path}{nx}{folder_name}"
+    folder = get_shared_folder(request.form.get("folder_uid"))
 
-    return main.add_media_data(
-        files_to_upload=files_to_add,
-        subject=subject,
-        username=username,
-        redirect_path=path,
-        disk_path=filepath,
-        folder_uid=folder_uid
+    if not may_modify(folder):
+        abort(403)
+
+    result = main.add_media_data(
+        files_to_upload=request.files.getlist("media_to_add"),
+        subject=folder.subject,
+        username=folder.name,
+        disk_path=str(confine(folder.path, folder.filename)),
+        folder_uid=folder.unique_id
     )
 
+    if result == "OK":
+        flash("Folgende Datei/en wurde/n erfolgreich hochgeladen und gespeichert.", "upload_success")
+    else:
+        flash(result, "upload_error")
+
+    return redirect(folder_url(folder))
+
 @share.route("/foreign_access", methods=["POST"])
+@login_required
 def foreign_access():
     value      = request.form.get("value")
     folder_uid = request.form.get("folder_uid")
 
-    folder = Media.query.filter_by(unique_id=folder_uid).first()
+    # Only the owner of a folder may change its foreign access setting.
+    folder = Media.query.filter_by(unique_id=folder_uid, category="folder", name=current_user.username).first()
 
-    if not folder:
-        return ""
+    if not folder or value not in ("Ja", "Nein"):
+        abort(404)
 
-    if (value == "Ja" and folder.has_foreign_access()) or (value == "Nein" and not folder.has_foreign_access()):
-        return ""
+    folder.set_foreign_access(value == "Ja")
 
-    if value == "Ja":
-        folder.set_foreign_access(True)
-        return "Foreign access: true"
-
-    folder.set_foreign_access(False)
-
-    return "Foreign access: false"
+    return f"Foreign access: {'true' if folder.has_foreign_access() else 'false'}"

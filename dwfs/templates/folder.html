@@ -26,15 +26,7 @@
             <div class="notification is-success has-text-centered">
                 {{ messages[0] }}
             </div>
-            {% elif messages[0].startswith('Please choose at least one file.') %}
-            <div class="notification is-danger has-text-centered">
-                {{ messages[0] }}
-            </div>
-            {% elif messages[0].startswith('The file/s already exist/s') %}
-            <div class="notification is-danger has-text-centered">
-                {{ messages[0] }}
-            </div>
-            {% elif messages[0].startswith('The file extension') %}
+            {% else %}
             <div class="notification is-danger has-text-centered">
                 {{ messages[0] }}
             </div>
@@ -42,7 +34,7 @@
             {% endif %}
             {% endwith %}
 
-            <form method="POST" action="/add_shared_files" enctype="multipart/form-data">
+            <form method="POST" action="{{ url_for('share.add_shared_files') }}" enctype="multipart/form-data">
                 <div class="content">
                     <div class="field">
                         <div class="control">
@@ -65,11 +57,7 @@
                     </div>
                 </div>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <input type="hidden" name="path" id="add_path" />
                 <input type="hidden" name="folder_uid" value="{{ folder_uid }}" />
-                <input type="hidden" name="folder_name" value="{{ folder_name }}" />
-                <input type="hidden" name="username" value="{{ username }}" />
-                <input type="hidden" name="subject" value="{{ subject }}" />
                 <button class="button is-block is-info is-large is-fullwidth">Hinzufügen</button>
             </form>
         </div>
@@ -85,7 +73,7 @@
             <div class="box">
 
                 {% if faccess %}
-                <form method="POST" action="/remove_shared_files">
+                <form method="POST" action="{{ url_for('share.remove_shared_files') }}">
 
                     <div class="content has-text-centered">
                         <button class="button is-danger">Remove</button>
@@ -143,7 +131,7 @@
 
                     </table>
                     <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
-                    <input type="hidden" name="path" id="remove_path">
+                    <input type="hidden" name="folder_uid" value="{{ folder_uid }}">
                     {% if faccess %}
                 </form>
                     {% endif %}
@@ -151,11 +139,6 @@
         </section>
     </div>
 </div>
-
-<script>
-    $("#add_path").attr('value', window.location.href);
-    $("#remove_path").attr('value', window.location.href);
-</script>
 
 <style>
     html {

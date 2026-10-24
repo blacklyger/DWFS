@@ -2,14 +2,6 @@
 
 {% block content %}
 
-{% with messages = get_flashed_messages(category_filter=['error', 'success']) %}
-{% if messages %}
-<div class="notification is-danger has-text-centered">
-    {{ messages[0] }}
-</div>
-{% endif %}
-{% endwith %}
-
 <section class="hero is-fullheight">
     <div class="hero-body">
         <div class="container has-text-centered">
@@ -17,15 +9,15 @@
                 <p class="title has-text-white">Registrieren</p>
 
                 <div class="box">
-                    {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                    <div class="notification is-danger">
-                        {{ messages[0] }}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% for category, message in messages %}
+                    <div class="notification {{ 'is-success' if category == 'success' else 'is-danger' }}">
+                        {{ message }}
                     </div>
-                    {% endif %}
+                    {% endfor %}
                     {% endwith %}
 
-                    <form method="POST" action="/req_new_acc">
+                    <form method="POST" action="{{ url_for('main.req_new_acc') }}">
                         <div class="field">
                             <div class="control">
                                 <input name="username" class="input is-large" type="text" placeholder="Nutzername">

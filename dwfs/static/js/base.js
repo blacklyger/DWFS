@@ -23,6 +23,17 @@ function do_it(it) {
 }
 
 
+// Escape every value that is inserted into the DOM as HTML (prevents XSS).
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+
 function open_modal(modal_name) {
     document.getElementById(modal_name).classList.add('is-active');
 }
@@ -31,15 +42,6 @@ function open_modal(modal_name) {
 function close_modal(modal_name) {
     document.getElementById(modal_name).classList.remove('is-active');
 }
-
-/*function progressHandler(event) {
-    console.log(event.loaded);
-    console.log(event.total);
-}
-
-function completeHandler(event) {
-    console.log(event);
-}*/
 
 function get_all_files() {
     var data = document.getElementById('fileupload').files;
@@ -53,29 +55,17 @@ function get_all_files() {
     file_data += '</thead>';
 
     $.each(data, function (key, value) {
-        console.log(key, value.name);
         key += 1;
 
         file_data += '<tbody>';
         file_data += '<tr>';
         file_data += '<td>' + key + '</td>';
-        file_data += '<td>' + value.name + '</td>';
+        file_data += '<td>' + escapeHtml(value.name) + '</td>';
         file_data += '</tr>';
         file_data += '</tbody>';
     });
 
     $('#filetable').html(file_data);
-
-    /*var formdata = new FormData();
-    formdata.append('fileupload', $('fileupload').files);
-
-    var ajax = new XMLHttpRequest();
-    ajax.upload.addEventListener("progress", progressHandler, false);
-    ajax.addEventListener("load", completeHandler, false);
-
-    ajax.open('POST', 'https://files.origin7.de/blubby');
-    ajax.setRequestHeader('X-CSRF-Token', $('#ctoken').val());
-    ajax.send(formdata);*/
 }
 
 
@@ -90,17 +80,13 @@ function postFile() {
     var formData = new FormData();
 
     var files = $('#fileupload')[0].files;
-    console.log(files);
 
     for (i = 0; i < files.length; i++) {
         formData.append(`file_${i}`, files[i]);
-        console.log(files[i]);
     }
 
     formData.append('current_subject', $('#current_subject').val());
     formData.append('file_path', $('#file_path').val());
-
-    console.log(formData);
 
     $.ajax({
         xhr: function () {
@@ -128,7 +114,6 @@ function postFile() {
 
 
                     $('#progress_label').text(`${percentComplete}% [${roundTo(evt.loaded / 1000000, 2)} MB of ${roundTo(evt.total / 1000000, 2)} MB with ${mbps} MBit/s (${roundTo(mbps / 8, 2)} MByte/s)]`);
-                    console.log(percentComplete);
                 }
 
             }, false);
@@ -144,7 +129,7 @@ function postFile() {
 
         if (data != "OK") {
 
-            $('#upload_error').html(`<div class="notification is-danger has-text-centered">${data}</div>"`);
+            $('#upload_error').empty().append($('<div class="notification is-danger has-text-centered"></div>').text(data));
 
             setTimeout(function () {
                 location.reload();
@@ -159,6 +144,9 @@ function postFile() {
             location.reload();
         }, 2000);
 
+    }).fail(function (xhr) {
+        $('#upload_error').empty().append($('<div class="notification is-danger has-text-centered"></div>')
+            .text(xhr.status == 413 ? "Die Datei ist zu groß." : "Upload fehlgeschlagen."));
     });
 }
 
@@ -232,22 +220,21 @@ $(function () {
             }
         }
 
-        $.ajax({
-            method: "POST",
-            url: "/download_files",
-            data: {
-                current_subject: $("#current_subject").val(),
-                current_path: window.location.href,
-                change: to_change
-            }
-        }).done(function (data) {
+        if (to_change.length == 0) {
+            return;
+        }
 
-            if (data == "NA") {
-                return;
-            }
+        // Regular form POST (incl. CSRF token) so the browser receives the ZIP as download.
+        var form = $('<form method="POST" action="/download_files"></form>');
+        form.append($('<input type="hidden" name="csrf_token">').val(ctoken));
+        form.append($('<input type="hidden" name="current_subject">').val($("#current_subject").val()));
+        form.append($('<input type="hidden" name="current_path">').val(window.location.href));
 
-            window.open("https://files.origin7.de/static/" + data);
-        });
+        for (i = 0; i < to_change.length; i++) {
+            form.append($('<input type="hidden" name="change[]">').val(to_change[i]));
+        }
+
+        form.appendTo('body').submit().remove();
     });
 
     const params = new URLSearchParams(window.location.search);
@@ -300,15 +287,11 @@ function send_search_query(value) {
             current_subject: $("#current_subject").val(),
             path: window.location.href
         }
-    }).done(function (data) {
+    }).done(function (l) {
 
-        if (data == "") {
+        if (!Array.isArray(l)) {
             return;
         }
-
-        l = JSON.parse(data);
-
-        console.log(l);
 
         var search_results = "";
 
@@ -326,23 +309,27 @@ function send_search_query(value) {
             search_results += "<tbody>";
             search_results += "<tr>";
 
+            var filename = escapeHtml(item.filename);
+            var download_url = escapeHtml(item.download_url);
+            var uid = escapeHtml(item.unique_id);
+
             if (item.is_dir) {
                 search_results += `<td><figure class='image is-32x32'><img src="/static/folder.png"></figure></td>`;
-                search_results += "<td>" + "<a href=" + item.url + ">" + item.filename + "</td>";
-                search_results += "<td>" + item.download_url + "</td>";
-                search_results += `<td class="has-text-centered"><a class='button is-primary' onclick="foreign_access_request('Ja', '` + item.unique_id + `')">Ja</a>
-                                    <a class="button is-danger" onclick="foreign_access_request('Nein', '` + item.unique_id + `')">Nein</a></td>`;
+                search_results += `<td><a href="${escapeHtml(item.url)}">${filename}</a></td>`;
+                search_results += `<td>${download_url}</td>`;
+                search_results += `<td class="has-text-centered"><a class="button is-primary" data-uid="${uid}" onclick="foreign_access_request('Ja', this.dataset.uid)">Ja</a>
+                                    <a class="button is-danger" data-uid="${uid}" onclick="foreign_access_request('Nein', this.dataset.uid)">Nein</a></td>`;
                 search_results += `<td class="has-text-centered">
-                <input name="media_to_remove" type="checkbox" value="` + item.filename + `">
+                <input name="media_to_remove" type="checkbox" value="${filename}">
             </td>`;
 
             } else {
                 search_results += `<td><figure class='image is-32x32'><img src="/static/file.png"></figure></td>`;
-                search_results += "<td>" + "<a href=" + item.download_url + " target='_blank'>" + item.filename + "<br>" + "[" + item.file_size + " MB]" + "</td>";
-                search_results += "<td>" + item.download_url + "</td>";
+                search_results += `<td><a href="${download_url}" target="_blank" rel="noopener">${filename}<br>[${escapeHtml(item.file_size)} MB]</a></td>`;
+                search_results += `<td>${download_url}</td>`;
                 search_results += "<td class='has-text-centered'>/</td>";
                 search_results += `<td class="has-text-centered">
-                <input name="media_to_remove" type="checkbox" value="` + item.filename + `">
+                <input name="media_to_remove" type="checkbox" value="${filename}">
                 </td>`;
             }
 

@@ -235,20 +235,5 @@
   }
 </style>
 
-<script>
-  all = ['about', 'hiw', 'pre'];
-  all_columns = ['about_column', 'hiw_column', 'pre_column'];
-
-  for (i = 0; i < all.length; i++) {
-    element = document.getElementById(all[i]);
-
-    if (element.classList == 0) {
-      full_name = element.id + "_column";
-      ele = document.getElementById(full_name);
-      ele.style.display = "none";
-    }
-  }
-</script>
-
 
 {% endblock %}

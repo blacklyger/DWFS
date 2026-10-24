@@ -7,7 +7,7 @@ class User(UserMixin, db.Model):
 
     id          = db.Column(db.Integer, primary_key=True)
     username    = db.Column(db.String(100), unique=True)
-    password    = db.Column(db.String(100))
+    password    = db.Column(db.String(255))
     role        = db.Column(db.String(100))
 
     def __init__(self, username, password, role):
@@ -17,18 +17,18 @@ class User(UserMixin, db.Model):
 
     @property
     def is_admin(self):
-        return True if self.role == "Admin" else False
+        return self.role == "Admin"
 
-class Media(UserMixin, db.Model):
-    
+class Media(db.Model):
+
     id        = db.Column(db.Integer, primary_key=True)
     name      = db.Column(db.String(100))
     subject   = db.Column(db.String(100))
     filename  = db.Column(db.String(100))
-    path      = db.Column(db.String(200))
+    path      = db.Column(db.String(500))
     category  = db.Column(db.String(10))
-    unique_id = db.Column(db.String(10), unique=True)
-    in_folder = db.Column(db.String(10))
+    unique_id = db.Column(db.String(200), unique=True)
+    in_folder = db.Column(db.String(200))
     faccess   = db.Column(db.Boolean, default=False)
 
     def __init__(self, name, subject, filename, path, category, unique_id, in_folder, faccess = False):
@@ -42,32 +42,33 @@ class Media(UserMixin, db.Model):
         self.faccess   = faccess
 
     def is_dir(self):
-        return True if self.category == "folder" else False
+        return self.category == "folder"
 
     def set_foreign_access(self, value: bool):
         self.faccess = value
         db.session.commit()
 
     def has_foreign_access(self):
-        return True if self.faccess else False
+        return bool(self.faccess)
 
 
-class Subjects(UserMixin, db.Model):
-    
+class Subjects(db.Model):
+
     id           = db.Column(db.Integer, primary_key=True)
     name         = db.Column(db.String(100))
-    subject      = db.Column(db.String(20))
+    subject      = db.Column(db.String(100))
 
     def __init__(self, name, subject):
         self.name         = name
         self.subject      = subject
 
 
-class AccountRequest(UserMixin, db.Model):
+class AccountRequest(db.Model):
 
     id         = db.Column(db.Integer, primary_key=True)
     username   = db.Column(db.String(100), unique=True)
-    password   = db.Column(db.String(100))
+    # Only the password hash is stored, never the plaintext password.
+    password   = db.Column(db.String(255))
     date       = db.Column(db.DateTime)
     ip_address = db.Column(db.String(100))
 
@@ -76,7 +77,3 @@ class AccountRequest(UserMixin, db.Model):
         self.password   = password
         self.date       = date
         self.ip_address = ip_address
-
-from . import app
-with app.app_context():
-    db.create_all()
