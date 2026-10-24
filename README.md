@@ -128,6 +128,23 @@ tests/            Functional and security tests (pytest)
 - Uploaded files are not scanned for malware.
 - Share links work like passwords: anyone with the link can download. Use *regenerate share links* to revoke one.
 
+## Project history
+
+- **2020-05-04**: Repository created, at the start of the first COVID-19 school closures
+- **2020-05-07**: First release with login, subjects, uploads (extension allow-list) and download links
+- **2020-06-10**: Upload size limit, file sizes, deleting subjects, admin tool for assigning subjects to users
+- **2020-12-03**: Renaming of subjects and files
+- **2020-12-25**: Nested folders, account requests with admin approval, admin role, regenerating share IDs
+- **2021-02-04**: Public share page for folders and "foreign access" (link holders can upload, e.g. to hand in assignments)
+- **2021-02-08**: Sanity checks and controls for foreign access
+- **2021-03-13**: Share links can be regenerated per file
+- **2021-12-08**: Search within subjects and folders
+- **2022-03-13**: Responsive tables, sanitized folder names, better search
+- **2022-06-13**: Stricter filename sanitizing, file sizes in search results
+- **2022-06-26**: Download of several files as a ZIP archive
+- **2024-08-13**: Pagination, AJAX upload with progress bar and transfer rate
+- **2026-10-24**: Security review and hardening (see above), automated test suite, new documentation
+
 ## Tech stack
 
 Python · Flask · SQLAlchemy · Flask-Login · Flask-WTF · Jinja2 · jQuery · Bulma
