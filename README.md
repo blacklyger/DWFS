@@ -1,10 +1,13 @@
 # DWFS – self-hosted file sharing for schools
 
 **DWFS** (*"Don't wanna wait for files and stuff"*) is a self-hostable web application for
-uploading, organizing and sharing files. I built it during the COVID-19 pandemic for my school,
-where it was used in practice. Teachers and students needed a fast and uncomplicated way to
-exchange material during remote teaching, and downloads from the school's existing platform
-were too slow.
+uploading, organizing and sharing files. I built it during the COVID-19 pandemic for my school.
+Teachers and students needed a fast and uncomplicated way to exchange material during remote
+teaching, and downloads from the school's existing platform were too slow.
+
+DWFS was presented at the school, but it was not adopted by its teachers and students. It was
+still used and tested in real-world scenarios, and that practical use shaped many of the later
+features (see [Project history](#project-history)).
 
 The main design goals were **simplicity**, **speed** and **security**. Anyone who receives a
 link can download a file without an account, while uploads, folder management and sharing
